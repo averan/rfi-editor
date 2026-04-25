@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>7001_294-RFI-100-001</title>
+    <style>
+      .page {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px 10px 30mm 10px; /* espacio para footer */
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 11px;
+        color: #111;
+        margin: 20px;
+        line-height: 1.3;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+
+      .logo img {
+        max-height: 70px;
+        max-width: 220px;
+        object-fit: contain;
+      }
+
+      .header-text {
+        text-align: right;
+      }
+
+      .right {
+        text-align: right;
+      }
+
+      .small {
+        font-size: 11px;
+      }
+
+      .xsmall {
+        font-size: 10px;
+      }
+
+      .title {
+        font-weight: bold;
+        font-size: 18px;
+        margin-bottom: 2px;
+        text-transform: uppercase;
+      }
+
+      .subtitle {
+        font-weight: normal;
+        font-size: 16px;
+        margin-bottom: 2px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 8px;
+      }
+
+      td,
+      th {
+        padding: 6px 8px;
+        vertical-align: top;
+        border: 1px solid #777;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .label {
+        width: 25%;
+        font-weight: bold;
+      }
+
+      .label1 {
+        width: 14%;
+        text-align: right;
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      .label2 {
+        width: 25%;
+        font-size: 11px;
+        font-weight: bold;
+      }
+
+      .section-title {
+        font-weight: bold;
+        margin-top: 14px;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+
+      ul,
+      ol {
+        margin-top: 4px;
+        margin-bottom: 4px;
+      }
+
+      .signature-box {
+        height: 50px;
+      }
+
+      .answer-box {
+        height: 180px;
+        /* white-space: pre-wrap; */
+      }
+
+      .footer {
+        position: fixed;
+        bottom: 10mm; /* mismo orden que @page */
+        left: 8mm;
+        right: 8mm;
+
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+
+        border-top: 1px solid #777;
+        padding-top: 6px;
+
+        font-size: 10px;
+        color: #444;
+      }
+
+      .description {
+        margin-top: 4px;
+        margin-bottom: 4px;
+        font-style: italic;
+        padding-left: 12px;
+      }
+
+      .nivel2 {
+        list-style-type: upper-alpha;
+        margin-top: 4px;
+        margin-bottom: 4px;
+      }
+
+      .nivel3 {
+        list-style-type: lower-alpha;
+        margin-top: 4px;
+        margin-bottom: 4px;
+      }
+
+      .subsub-list {
+        vertical-align: top;
+        margin-top: 4px;
+        margin-bottom: 4px;
+        padding-left: 18px;
+        list-style-type: square;
+      }
+
+      /* TABLA DESCRIPCION RFI */
+      .rfi-desc-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 12px;
+      }
+
+      .rfi-desc-table thead {
+        display: table-header-group;
+      }
+
+      .rfi-desc-table .desc-head {
+        padding: 0;
+        height: 0;
+        line-height: 0;
+        font-size: 0;
+        border-left: 1px solid #777;
+        border-right: 1px solid #777;
+        border-top: 1px solid #777;
+        border-bottom: 0;
+        background: transparent;
+      }
+
+      .rfi-desc-table td.desc-cell {
+        border-left: 1px solid #777;
+        border-right: 1px solid #777;
+        border-top: 0;
+        border-bottom: 0;
+        padding: 6px 8px;
+        vertical-align: top;
+      }
+
+      .rfi-desc-table tbody tr:last-child td.desc-cell {
+        border-bottom: 1px solid #777;
+      }
+
+      .summary-cell {
+        padding-top: 8px;
+        padding-bottom: 4px;
+      }
+
+      .rfi-summary {
+        margin: 0;
+        font-style: italic;
+      }
+
+      .item-block {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .item-title {
+        margin-bottom: 3px;
+        break-after: avoid;
+        page-break-after: avoid;
+      }
+
+      .keep-together {
+        break-inside: avoid-page;
+        page-break-inside: avoid;
+      }
+
+      @media print {
+        .page {
+          size: legal;
+          margin: 10mm 5mm;
+          max-width: 1000px;
+          margin: 0 auto;
+          padding: 20px 10px 30mm 10px; /* espacio para footer */
+          box-sizing: border-box;
+        }
+        table {
+          page-break-inside: auto;
+        }
+
+        tr {
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+
+        .rfi-desc-table thead {
+          display: table-header-group;
+        }
+
+        .rfi-desc-table tfoot {
+          display: table-footer-group;
+        }
+
+        .keep-together {
+          break-inside: avoid-page;
+          page-break-inside: avoid;
+        }
+
+        .item-block {
+          break-inside: avoid-page;
+          page-break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="header">
+        <div class="logo">
+          <img src="file:///Users/sergioformasnavarro/Documents/PROYECTOS/VIA_LIMPIA_Planta ALU  /rfi_project/img/LOGO_ECORP.png" />
+        </div>
+        <div class="header-text">
+          <div class="right title">REQUEST FOR INFORMATION (RFI)</div>
+          <div class="right subtitle">Project / Proyecto: Planta ALU Vía Límpia</div>
+        </div>
+      </div>
+      <table>
+        <tr>
+          <td class="label">N° Proyecto / Proj. No</td>
+          <td>7001_294</td>
+          <td class="label1">7001_294 - RFI</td>
+          <td class="label1" style="text-align: left">-100-001</td>
+        </tr>
+        <tr>
+          <td class="label">Nombre Proyecto / Proj. Name</td>
+          <td>Planta ALU Vía Límpia</td>
+          <td class="label" style="text-align: right">N° Cotización / Proposal</td>
+          <td style="text-align: center">C4053</td>
+        </tr>
+        <tr>
+          <td class="label">Cliente / Client</td>
+          <td colspan="3">COPEC</td>
+        </tr>
+        <!-- </table>
+
+      <table> -->
+        <tr>
+          <td class="label">To</td>
+          <td colspan="3">COPEC – Área de Ingeniería/Engineering</td>
+        </tr>
+        <tr>
+          <td class="label">Consultor / Consultant</td>
+          <td colspan="3">ESPACIOCORP</td>
+        </tr>
+        <tr>
+          <td class="label">De / From</td>
+          <td colspan="3">Sergio Formas (sformas@espaciocorp.cl)</td>
+        </tr>
+        <tr>
+          <td class="label">Cc</td>
+          <td colspan="3">
+            <ul class="subsub-list">
+              <li>Antonio Suarez (antonio.suarez@copec.cl)</li>
+
+              <li>Jesus Martinez (jmartinezl@vialimpiaspa.cl)</li>
+            </ul>
+          </td>
+        </tr>
+      </table>
+
+      <div class="section-title">Documentos de referencia / Reference Documents</div>
+      <table>
+        <tr>
+          <td>
+            <ul class="subsub-list">
+              <li>
+                Se adjunta listado de documentos revisados en la biblioteca de antecedentes del proyecto, incluyendo RCA, Ingeniería Básica VLP-470 y anexos. Se
+                solicita complementar con cualquier documento adicional relevante para la definición del expediente IFC y Permiso de Edificación.
+              </li>
+            </ul>
+          </td>
+        </tr>
+      </table>
+
+      <div class="section-title">Descripción de RFI / RFI Description</div>
+
+      <table class="rfi-desc-table">
+        <thead>
+          <tr>
+            <th class="desc-head"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="summary-row keep-together">
+            <td class="desc-cell summary-cell">
+              <p class="rfi-summary">
+                En base a la revisión de la biblioteca de antecedentes del proyecto (RCA, Ingeniería Básica VLP-470 y anexos), se solicita complementar y
+                consolidar información para la correcta definición habilitante del expediente IFC y su correspondiente Permiso de Edificación:
+              </p>
+            </td>
+          </tr>
+
+          <tr class="item-row keep-together">
+            <td class="desc-cell">
+              <div class="item-block">
+                <div class="item-title">
+                  1.
+                  <strong>Consolidación de Edificaciones del proyecto</strong>
+                </div>
+
+                <div class="description">Se identifican antecedentes parciales en arquitectura (5000), layout (4350) y RCA, sin consolidación única.</div>
+
+                <ol class="nivel2">
+                  <li>
+                    Emitir listado oficial indicando tags por edificios/recintos) del proyecto (Administrativo, Operaciones, Equipamiento, Mantenimiento,
+                    Bodegas)
+                  </li>
+
+                  <li>Relacionar edificios con planos estructurales existentes (5230, 5240, 5250, 5260)</li>
+
+                  <li>Indicar si existen edificios adicionales no modelados en arquitectura</li>
+
+                  <li>Vincular cada edificio con su uso operacional</li>
+                </ol>
+              </div>
+            </td>
+          </tr>
+
+          <tr class="item-row keep-together">
+            <td class="desc-cell">
+              <div class="item-block">
+                <div class="item-title">
+                  2.
+                  <strong>Planimetría consolidada del proyecto</strong>
+                </div>
+
+                <div class="description">Existen múltiples fuentes: layout general (4350), topografía (13140), KMZ y modelos 3D, sin integración única.</div>
+
+                <ol class="nivel2">
+                  <li>Plano general consolidado georreferenciado (DWG base)</li>
+
+                  <li>Integración de layout proceso (4300) + arquitectura (5000)</li>
+
+                  <li>Definición de límites de edificaciones y áreas</li>
+
+                  <li>Coherencia entre KMZ, topografía y layout</li>
+                </ol>
+              </div>
+            </td>
+          </tr>
+
+          <tr class="item-row keep-together">
+            <td class="desc-cell">
+              <div class="item-block">
+                <div class="item-title">
+                  3.
+                  <strong>Definición del Área de Proceso</strong>
+                </div>
+
+                <div class="description">
+                  Se dispone de P&amp;ID (4340), diagramas de bloques (4310) y memorias (4130), pero no existe definición constructiva.
+                </div>
+
+                <ol class="nivel2">
+                  <li>Definir y aclarar qué área de proceso corresponde a estructura techada, abierta o mixta</li>
+
+                  <li>Delimitar áreas como losas, edificaciones, áreas de almacenamiento, etc.</li>
+
+                  <li>Indicar requerimientos estructurales (fundaciones, racks, soportes)</li>
+                </ol>
+              </div>
+            </td>
+          </tr>
+
+          <tr class="item-row keep-together">
+            <td class="desc-cell">
+              <div class="item-block">
+                <div class="item-title">
+                  4.
+                  <strong>Infraestructura de almacenamiento (Tank Farm)</strong>
+                </div>
+
+                <div class="description">Se cuenta con memorias de cálculo (6210) y P&amp;ID (4340), pero falta definición arquitectónica/constructiva.</div>
+
+                <ol class="nivel2">
+                  <li>Plano de implantación de estanques (coherente con 4340 y 4350)</li>
+
+                  <li>Definición de pretiles (dimensiones y capacidad)</li>
+
+                  <li>
+                    Clasificación de áreas peligrosas (4160) aplicada a layout
+                    <mark style="color: red"><---REVISAR SI APLICA para esta área---</mark>
+                  </li>
+
+                  <li>
+                    Relación con DS 43/2015
+                    <mark style="color: red"><---REVISAR SI APLICA para esta área---</mark>
+                  </li>
+                </ol>
+              </div>
+            </td>
+          </tr>
+
+          <tr class="item-row keep-together">
+            <td class="desc-cell">
+              <div class="item-block">
+                <div class="item-title">
+                  5.
+                  <strong>Edificios de soporte y utilidades</strong>
+                </div>
+
+                <div class="description">
+                  Se identifican referencias en mecánica (6412 sala de utilities) y procesos (Nodo 4 Utilities), sin consolidación arquitectónica.
+                </div>
+
+                <ol class="nivel2">
+                  <li>Definir sala de calderas, compresores, oxidación térmica</li>
+
+                  <li>Plano y memoria de sala de subestación eléctrica</li>
+
+                  <li>Definir ubicación y características de generador diésel</li>
+
+                  <li>Relación entre utilities y área de proceso</li>
+                </ol>
+              </div>
+            </td>
+          </tr>
+
+          <tr class="item-row keep-together">
+            <td class="desc-cell">
+              <div class="item-block">
+                <div class="item-title">
+                  6.
+                  <strong>Memorias técnicas por disciplina</strong>
+                </div>
+
+                <div class="description">Existen memorias separadas (eléctrica, hidráulica, proceso, mecánica), pero no integradas para IFC.</div>
+
+                <ol class="nivel2">
+                  <li>Memoria descriptiva consolidada del proyecto (arquitectura + proceso)</li>
+
+                  <li>Memoria sanitaria (agua potable, servidas, RILES – ref. 4136)</li>
+
+                  <li>Memoria eléctrica (10210, 10220)</li>
+
+                  <li>Memoria de riesgos y áreas peligrosas (4160, HAZOP 4510)</li>
+                </ol>
+              </div>
+            </td>
+          </tr>
+
+          <tr class="item-row keep-together">
+            <td class="desc-cell">
+              <div class="item-block">
+                <div class="item-title">
+                  7.
+                  <strong>Clasificación normativa y cumplimiento</strong>
+                </div>
+
+                <div class="description">Se requiere aterrizar normativa a nivel de edificación (no solo proceso).</div>
+
+                <ol class="nivel2">
+                  <li>Clasificación de uso por edificio (OGUC)</li>
+
+                  <li>Carga de ocupación por recinto</li>
+
+                  <li>Resistencia al fuego de edificaciones</li>
+
+                  <li>Aplicación DS 43/2015 (bodegas) y DS 594 (habitabilidad)</li>
+                </ol>
+              </div>
+            </td>
+          </tr>
+
+          <tr class="item-row keep-together">
+            <td class="desc-cell">
+              <div class="item-block">
+                <div class="item-title">
+                  8.
+                  <strong>Aclaraciones</strong>
+                </div>
+
+                <div class="description">Agradeceremos aclarar los siguientes puntos:</div>
+
+                <ol class="nivel2">
+                  <li>
+                    <strong>Coordinación Proceso - Edificaciones</strong>
+                    : Coherencia entre disciplinas
+                    <ol class="nivel3">
+                      <li>Confirmar que layout 4350 es versión vigente del proyecto</li>
+
+                      <li>Validar coherencia entre P&amp;ID (4340) y layout general</li>
+
+                      <li>Indicar si modelo 3D arquitectura (5210) está actualizado</li>
+
+                      <li>Confirmar consistencia entre memorias y planos</li>
+                    </ol>
+                  </li>
+
+                  <li>
+                    <strong>Validar ingeniería que se presentará para IFC</strong>
+                    : Validación de la ingeniería que se presentará en en el IFC. En el entendido que el IFC actua como permiso habilitante de las
+                    construcciones en área rural y diferencias respecto de lo que se presentará en el permiso generan riegos
+                    <ol class="nivel3">
+                      <li>Indicar qué documentos corresponden a base oficial para IFC</li>
+
+                      <li>Confirmar nivel de ingeniería actual (IB vs IFC)</li>
+
+                      <li>Definir brechas identificadas por el cliente</li>
+
+                      <li>Confirmar estrategia de desarrollo del expediente DOM</li>
+                    </ol>
+                  </li>
+                </ol>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table>
+        <tr>
+          <td class="label2">Acompaña anexos / Includes documents</td>
+          <td>Sí / Yes</td>
+          <td class="label2">Fecha de Respuesta / Answer Date</td>
+          <td>2026-04-24</td>
+        </tr>
+
+        <tr>
+          <td class="label2">Documentos adjuntos / Attached documents</td>
+          <td colspan="3">
+            <ul class="subsub-list">
+              <li>control_documentos_biblioteca.xlsx</li>
+
+              <li>Mdificacion Planta Octubre 2024.pdf</li>
+            </ul>
+          </td>
+        </tr>
+
+        <!-- </table>
+
+      <table> -->
+        <tr>
+          <td class="label">Firma Originador / Originator Signature</td>
+          <td class="signature-box"></td>
+          <td class="label">Recibido por / Received by</td>
+          <td class="signature-box"></td>
+        </tr>
+        <tr>
+          <td class="label">Fecha / Date</td>
+          <td>2026-04-17</td>
+          <td class="label">Fecha / Date</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td class="label">Nombre / Name</td>
+          <td>Sergio Formas</td>
+          <td class="label">Nombre / Name</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td class="label">Cargo / Job Title</td>
+          <td>Jefe Proyecto</td>
+          <td class="label">Cargo / Job Title</td>
+          <td></td>
+        </tr>
+      </table>
+
+      <div class="section-title">Respuesta / Answer</div>
+      <table>
+        <tr>
+          <td class="answer-box" colspan="4"></td>
+        </tr>
+        <!-- </table>
+
+      <table> -->
+        <tr>
+          <td class="label2">Acompaña documentos / Includes documents</td>
+          <td></td>
+          <td class="label2">Fecha de Devolución RFI al Contratista / Return Date</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td class="label" colspan="3">Firma / Signature</td>
+          <td class="signature-box"></td>
+        </tr>
+        <tr>
+          <td class="label">Nombre / Name</td>
+          <td></td>
+          <td class="label">Cargo / Job title</td>
+          <td></td>
+        </tr>
+      </table>
+
+      <div class="footer">
+        <div>(Revision Date: marzo 2026)</div>
+        <div>Administración de Contrato</div>
+        <div>File: 7001_294-RFI-100-001</div>
+        <div>Page 1 of 1</div>
+      </div>
+    </div>
+  </body>
+</html>

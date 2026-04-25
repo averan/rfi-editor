@@ -1,0 +1,169 @@
+{
+    "$schema": "./rfi.schema.json",
+    "project": {
+        "project_no": "7001_294",
+        "project_name": "Planta ALU Vía Límpia",
+        "client": "COPEC",
+        "proposal_no": "C4053",
+        "rfi_no": "100-001"
+    },
+    "parties": {
+        "to": {
+            "company": "COPEC",
+            "department": "Área de Ingeniería/Engineering"
+        },
+        "contractor": "ESPACIOCORP",
+        "from": {
+            "name": "Sergio Formas",
+            "email": "sformas@espaciocorp.cl"
+        },
+        "cc": [
+            {
+                "name": "Antonio Suarez",
+                "email": "antonio.suarez@copec.cl"
+            },
+            {
+                "name": "Jesus Martinez",
+                "email": "jmartinezl@vialimpiaspa.cl"
+            }
+        ]
+    },
+    "reference_documents": [
+        "Se adjunta listado de documentos revisados en la biblioteca de antecedentes del proyecto, incluyendo RCA, Ingeniería Básica VLP-470 y anexos. Se solicita complementar con cualquier documento adicional relevante para la definición del expediente IFC y Permiso de Edificación."
+    ],
+    "rfi_description": {
+        "summary": "En base a la revisión de la biblioteca de antecedentes del proyecto (RCA, Ingeniería Básica VLP-470 y anexos), se solicita complementar y consolidar información para la correcta definición habilitante del expediente IFC y su correspondiente Permiso de Edificación:",
+        "items": [
+            {
+                "title": "Consolidación de Edificaciones del proyecto",
+                "description": "Se identifican antecedentes parciales en arquitectura (5000), layout (4350) y RCA, sin consolidación única.",
+                "subitems": [
+                    "Emitir listado oficial indicando tags por edificios/recintos) del proyecto (Administrativo, Operaciones, Equipamiento, Mantenimiento, Bodegas)",
+                    "Relacionar edificios con planos estructurales existentes (5230, 5240, 5250, 5260)",
+                    "Indicar si existen edificios adicionales no modelados en arquitectura",
+                    "Vincular cada edificio con su uso operacional"
+                ]
+            },
+            {
+                "title": "Planimetría consolidada del proyecto",
+                "description": "Existen múltiples fuentes: layout general (4350), topografía (13140), KMZ y modelos 3D, sin integración única.",
+                "subsubitems": [
+                    "Plano general consolidado georreferenciado (DWG base)",
+                    "Integración de layout proceso (4300) + arquitectura (5000)",
+                    "Definición de límites de edificaciones y áreas",
+                    "Coherencia entre KMZ, topografía y layout"
+                ]
+            },
+            {
+                "title": "Definición del Área de Proceso",
+                "description": "Se dispone de P&ID (4340), diagramas de bloques (4310) y memorias (4130), pero no existe definición constructiva.",
+                "subitems": [
+                    "Definir y aclarar qué área de proceso corresponde a estructura techada, abierta o mixta",
+                    "Delimitar áreas como losas, edificaciones, áreas de almacenamiento, etc.",
+                    "Indicar requerimientos estructurales (fundaciones, racks, soportes)"
+                ]
+            },
+            {
+                "title": "Infraestructura de almacenamiento (Tank Farm)",
+                "description": "Se cuenta con memorias de cálculo (6210) y P&ID (4340), pero falta definición arquitectónica/constructiva.",
+                "subitems": [
+                    "Plano de implantación de estanques (coherente con 4340 y 4350)",
+                    "Definición de pretiles (dimensiones y capacidad)",
+                    "Clasificación de áreas peligrosas (4160) aplicada a layout<mark><---REVISAR SI APLICA para esta área---</mark>",
+                    "Relación con DS 43/2015 <mark><---REVISAR SI APLICA para esta área---</mark>"
+                ]
+            },
+            {
+                "title": "Edificios de soporte y utilidades",
+                "description": "Se identifican referencias en mecánica (6412 sala de utilities) y procesos (Nodo 4 Utilities), sin consolidación arquitectónica.",
+                "subitems": [
+                    "Definir sala de calderas, compresores, oxidación térmica",
+                    "Plano y memoria características constructivas de sala de subestación eléctrica",
+                    "Definir ubicación y características de generador diésel",
+                    "Definir ubicación y características de sala de calderas"
+                ]
+            },
+            {
+                "title": "Memorias técnicas de disciplina necesarias para PE ",
+                "description": "Memorias descriptivas de: (sanitaria (sistemas particulares), Aguas lluvias(saneamiento), integradas para Permiso de Edificación",
+                "subitems": [
+                    "Memoria caracteristicas sistemas particulares sanitarios (agua potable, servidas, RILES – ref. 4136)",
+                    "Memoria eléctrica (10210, 10220)",
+                    "Memoria de riesgos y áreas peligrosas (4160, HAZOP 4510)"
+                ]
+            },
+            {
+                "title": "Clasificación normativa y cumplimiento",
+                "description": "Se requiere aterrizar normativa a nivel de edificación (no solo proceso).",
+                "subitems": [
+                    "Clasificación de uso por edificio (OGUC)",
+                    "Carga de ocupación por recinto",
+                    "Resistencia al fuego de edificaciones",
+                    "Aplicación DS 43/2015 (bodegas) y DS 594 (habitabilidad)"
+                ]
+            },
+            {
+                "title": "Aclaraciones",
+                "description": "Agradeceremos aclarar los siguientes puntos:",
+                "subitems": [
+                    {
+                        "name": "Coordinación Proceso - Edificaciones",
+                        "description": "Coherencia entre disciplinas",
+                        "subsubitems": [
+                            "Confirmar que layout 4350 es versión vigente del proyecto",
+                            "Validar coherencia entre P&ID (4340) y layout general",
+                            "Indicar si modelo 3D arquitectura (5210) está actualizado",
+                            "Confirmar consistencia entre memorias y planos"
+                        ]
+                    },
+                    {
+                        "name": "Validar ingeniería que se presentará para IFC",
+                        "description": "Validación de la ingeniería que se presentará en en el IFC. En el entendido que el IFC actua como permiso habilitante de las construcciones en área rural y diferencias respecto de lo que se presentará en el permiso generan riegos",
+                        "subsubitems": [
+                            "Indicar qué documentos corresponden a base oficial para IFC",
+                            "Confirmar nivel de ingeniería actual (IB vs IFC)",
+                            "Definir brechas identificadas por el cliente",
+                            "Confirmar estrategia de desarrollo del expediente DOM"
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "attachments": {
+        "includes_documents": true,
+        "documents": [
+            "control_documentos_biblioteca.xlsx",
+            "Mdificacion Planta Octubre 2024.pdf"
+        ]
+    },
+    "dates": {
+        "origin_date": "2026-04-17",
+        "answer_date": "2026-04-24",
+        "return_date": ""
+    },
+    "signatures": {
+        "originator": {
+            "name": "Sergio Formas",
+            "job_title": "Jefe Proyecto"
+        },
+        "received_by": {
+            "name": "",
+            "job_title": "",
+            "date": ""
+        },
+        "answer_by": {
+            "name": "",
+            "job_title": ""
+        }
+    },
+    "answer": {
+        "text": "Ver respuestas adjuntas"
+    },
+    "metadata": {
+        "revision_date": "marzo 2026",
+        "area": "Administración de Contrato",
+        "file_label": "Request for Information (RFI)",
+        "page": "1 of 1"
+    }
+}

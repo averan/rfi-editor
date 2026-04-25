@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>RFI Editor — ESPACIOCORP</title>
+<style>
+:root {
+  --primary: #5B2E8F;
+  --primary-dark: #3D1A6E;
+  --primary-light: #7C4DB2;
+  --bg: #F6F3FA;
+  --white: #fff;
+  --border: #d8d0e6;
+  --text: #1a1a2e;
+  --muted: #6b5f7a;
+  --danger: #e74c3c;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 13px; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* Header */
+.app-header { background: var(--primary); color: white; padding: 10px 20px; display: flex; align-items: center; gap: 16px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.app-header img { height: 44px; filter: brightness(0) invert(1); }
+.app-header h1 { font-size: 15px; font-weight: bold; letter-spacing: 0.5px; }
+.app-header .subtitle { font-size: 11px; opacity: 0.8; }
+
+/* Split screen */
+.app-body { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+
+/* Left panel */
+.left-panel { flex: 1; min-width: 0; display: flex; flex-direction: column; border-right: 3px solid var(--primary); background: #e8e3f0; overflow: hidden; }
+.panel-header { background: var(--primary-dark); color: white; padding: 8px 16px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1.5px; flex-shrink: 0; }
+.preview-scroll { flex: 1; overflow: auto; padding: 20px; }
+#preview-frame { display: block; width: 1060px; min-height: 1300px; border: none; background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+
+/* Right panel */
+.right-panel { width: 430px; min-width: 380px; display: flex; flex-direction: column; background: var(--white); overflow: hidden; }
+.form-scroll { flex: 1; overflow-y: auto; padding: 12px; }
+
+/* Accordion */
+.section { border: 1px solid var(--border); border-radius: 6px; margin-bottom: 10px; overflow: hidden; }
+.section-header { background: var(--primary); color: white; padding: 9px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: bold; letter-spacing: 0.5px; user-select: none; }
+.section-header:hover { background: var(--primary-light); }
+.section-header .chevron { transition: transform 0.2s; }
+.section-header.open .chevron { transform: rotate(180deg); }
+.section-body { padding: 12px; display: none; background: #faf9fc; }
+.section-body.open { display: block; }
+
+/* Fields */
+.field { margin-bottom: 10px; }
+.field label { display: block; font-size: 10px; font-weight: bold; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 3px; }
+.field input[type="text"], .field input[type="email"], .field input[type="date"], .field textarea {
+  width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; font-family: Arial, Helvetica, sans-serif; background: white; transition: border-color 0.15s;
+}
+.field input:focus, .field textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(91,46,143,0.12); }
+.field textarea { resize: vertical; min-height: 58px; }
+
+.subsection-title { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin: 10px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+
+/* Array inputs */
+.array-container { border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 4px; }
+.array-item { display: flex; align-items: flex-start; gap: 6px; padding: 5px 8px; border-bottom: 1px solid #f0ecf8; background: white; }
+.array-item:last-child { border-bottom: none; }
+.array-item textarea, .array-item input { flex: 1; padding: 4px 6px; border: 1px solid #e0d8ed; border-radius: 3px; font-size: 12px; font-family: Arial; }
+.array-item textarea { resize: vertical; }
+.btn-remove { background: var(--danger); color: white; border: none; border-radius: 3px; padding: 3px 7px; cursor: pointer; font-size: 11px; flex-shrink: 0; }
+.btn-remove:hover { opacity: 0.85; }
+.btn-add { background: var(--primary-light); color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 11px; font-weight: bold; margin-top: 5px; }
+.btn-add:hover { background: var(--primary); }
+
+/* Item editor */
+.item-editor { border: 1px solid var(--border); border-radius: 5px; margin-bottom: 8px; overflow: hidden; }
+.item-editor-header { background: #ede8f5; padding: 7px 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
+.item-editor-header:hover { background: #e0d8f0; }
+.item-editor-title { font-weight: bold; font-size: 12px; color: var(--primary-dark); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 6px; }
+.item-editor-body { padding: 10px; display: none; background: white; }
+.item-editor-body.open { display: block; }
+
+/* Subitem editor */
+.subitem-editor { border: 1px solid #e0d8ed; border-radius: 4px; margin-bottom: 6px; overflow: hidden; background: #faf8ff; }
+.subitem-editor-header { background: #f0eaf8; padding: 5px 8px; display: flex; align-items: center; gap: 6px; }
+.subitem-editor-header input { flex: 1; padding: 3px 6px; border: 1px solid #d0c8e8; border-radius: 3px; font-size: 12px; font-weight: bold; font-family: Arial; }
+.subitem-editor-body { padding: 8px; }
+.subsub-container { border: 1px solid #e8e0f5; border-radius: 3px; overflow: hidden; }
+.subsub-item { display: flex; gap: 5px; align-items: center; padding: 4px 6px; border-bottom: 1px solid #f0ecf8; }
+.subsub-item:last-child { border-bottom: none; }
+.subsub-item input { flex: 1; padding: 3px 5px; border: 1px solid #d8d0ea; border-radius: 3px; font-size: 11px; font-family: Arial; }
+
+/* Actions */
+.actions-bar { padding: 10px 12px; border-top: 2px solid var(--primary); display: flex; gap: 8px; background: var(--white); flex-shrink: 0; }
+.btn-primary { background: var(--primary); color: white; border: none; border-radius: 5px; padding: 8px 16px; cursor: pointer; font-size: 12px; font-weight: bold; font-family: Arial; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary { background: white; color: var(--primary); border: 2px solid var(--primary); border-radius: 5px; padding: 7px 14px; cursor: pointer; font-size: 12px; font-family: Arial; }
+.btn-secondary:hover { background: var(--bg); }
+
+/* ── Login ───────────────────────────────────────────────────────────────── */
+.login-screen { position: fixed; inset: 0; background: linear-gradient(150deg, #2A0F50 0%, #5B2E8F 55%, #8B55CC 100%); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+.login-card { background: white; border-radius: 16px; padding: 44px 40px 36px; width: 360px; box-shadow: 0 28px 72px rgba(0,0,0,0.5); text-align: center; }
+.login-logo { height: 58px; margin-bottom: 26px; }
+.login-title { font-size: 21px; font-weight: bold; color: var(--primary); margin-bottom: 3px; letter-spacing: 0.2px; }
+.login-tagline { font-size: 10px; color: #aaa; margin-bottom: 0; letter-spacing: 2px; text-transform: uppercase; }
+.login-divider { border: none; border-top: 1px solid #ede8f5; margin: 22px 0 20px; }
+.login-field { margin-bottom: 14px; text-align: left; }
+.login-field label { display: block; font-size: 10px; font-weight: bold; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+.login-field input { width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 7px; font-size: 13px; font-family: Arial; box-sizing: border-box; transition: border-color 0.15s, box-shadow 0.15s; }
+.login-field input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(91,46,143,0.13); }
+.login-error { color: #c0392b; font-size: 12px; text-align: center; margin-bottom: 8px; min-height: 16px; font-weight: bold; }
+.login-btn { width: 100%; background: var(--primary); color: white; border: none; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: bold; font-family: Arial; cursor: pointer; letter-spacing: 0.5px; margin-top: 4px; transition: background 0.15s, transform 0.1s; }
+.login-btn:hover { background: var(--primary-dark); }
+.login-btn:active { transform: scale(0.98); }
+.login-footer { margin-top: 24px; font-size: 9px; color: #c8b8e0; letter-spacing: 2.5px; text-transform: uppercase; }
+#app { display: none; height: 100vh; flex-direction: column; overflow: hidden; }
+#app.visible { display: flex; }
+@keyframes shake {
+  0%,100%{ transform: translateX(0); }
+  20%    { transform: translateX(-10px); }
+  40%    { transform: translateX(10px); }
+  60%    { transform: translateX(-7px); }
+  80%    { transform: translateX(7px); }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Pantalla de ingreso ─────────────────────────────────────────────── -->
+<div id="login-screen" class="login-screen">
+  <div class="login-card">
+    <img id="login-logo" src="img/LOGO_ECORP.png" class="login-logo" alt="ESPACIOCORP">
+    <div class="login-title">RFI Editor</div>
+    <div class="login-tagline">Hacemos que suceda</div>
+    <hr class="login-divider">
+    <form id="login-form" onsubmit="return doLogin(event)">
+      <div class="login-field">
+        <label>Usuario / User</label>
+        <input type="text" id="login-user" placeholder="Ingresa tu usuario" autocomplete="username" autofocus>
+      </div>
+      <div class="login-field">
+        <label>Contraseña / Password</label>
+        <input type="password" id="login-pass" placeholder="Ingresa tu contraseña" autocomplete="current-password">
+      </div>
+      <div id="login-error" class="login-error"></div>
+      <button type="submit" class="login-btn">Ingresar</button>
+    </form>
+    <div class="login-footer">ESPACIOCORP &nbsp;·&nbsp; Administración de Contrato</div>
+  </div>
+</div>
+
+<!-- ── Aplicación principal ────────────────────────────────────────────── -->
+<div id="app">
+
+<header class="app-header">
+  <img id="header-logo" src="img/LOGO_ECORP.png" alt="ESPACIOCORP">
+  <div>
+    <h1>RFI Editor</h1>
+    <div class="subtitle">Request for Information — ESPACIOCORP</div>
+  </div>
+</header>
+
+<div class="app-body">
+  <div class="left-panel">
+    <div class="panel-header">Vista Previa / Preview</div>
+    <div class="preview-scroll">
+      <iframe id="preview-frame" title="RFI Preview"></iframe>
+    </div>
+  </div>
+  <div class="right-panel">
+    <div class="panel-header">Datos del RFI / RFI Data</div>
+    <div class="form-scroll" id="form-container"></div>
+    <div class="actions-bar">
+      <button class="btn-primary" onclick="exportHTML()">&#8595; Exportar HTML</button>
+      <button class="btn-primary" onclick="exportPDF()" style="background:#8B1A1A">&#8595; Exportar PDF</button>
+      <button class="btn-secondary" onclick="exportJSON()">&#8595; Exportar JSON</button>
+      <button class="btn-secondary" onclick="resetData()" style="margin-left:auto">&#8635; Reiniciar</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<script>
+// ── Login ─────────────────────────────────────────────────────────────────────
+function doLogin(e) {
+  e.preventDefault();
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if (user === 'momo' && pass === 'Momo123') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').classList.add('visible');
+    buildForm();
+    updatePreview();
+  } else {
+    const err = document.getElementById('login-error');
+    err.textContent = 'Usuario o contraseña incorrectos';
+    document.getElementById('login-pass').value = '';
+    document.getElementById('login-pass').focus();
+    // Sacudir la tarjeta
+    const card = document.querySelector('.login-card');
+    card.style.animation = 'none';
+    card.offsetHeight;
+    card.style.animation = 'shake 0.4s ease';
+  }
+  return false;
+}
+
+// ── Logo embebido como base64 ─────────────────────────────────────────────────
+const LOGO_B64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAN4AAAAwCAYAAAEJLvTTAAAACXBIWXMAAC4jAAAuIwF4pT92AAAKT2lDQ1BQaG90b3Nob3AgSUNDIHByb2ZpbGUAAHjanVNnVFPpFj333vRCS4iAlEtvUhUIIFJCi4AUkSYqIQkQSoghodkVUcERRUUEG8igiAOOjoCMFVEsDIoK2AfkIaKOg6OIisr74Xuja9a89+bN/rXXPues852zzwfACAyWSDNRNYAMqUIeEeCDx8TG4eQuQIEKJHAAEAizZCFz/SMBAPh+PDwrIsAHvgABeNMLCADATZvAMByH/w/qQplcAYCEAcB0kThLCIAUAEB6jkKmAEBGAYCdmCZTAKAEAGDLY2LjAFAtAGAnf+bTAICd+Jl7AQBblCEVAaCRACATZYhEAGg7AKzPVopFAFgwABRmS8Q5ANgtADBJV2ZIALC3AMDOEAuyAAgMADBRiIUpAAR7AGDIIyN4AISZABRG8lc88SuuEOcqAAB4mbI8uSQ5RYFbCC1xB1dXLh4ozkkXKxQ2YQJhmkAuwnmZGTKBNA/g88wAAKCRFRHgg/P9eM4Ors7ONo62Dl8t6r8G/yJiYuP+5c+rcEAAAOF0ftH+LC+zGoA7BoBt/qIl7gRoXgugdfeLZrIPQLUAoOnaV/Nw+H48PEWhkLnZ2eXk5NhKxEJbYcpXff5nwl/AV/1s+X48/Pf14L7iJIEyXYFHBPjgwsz0TKUcz5IJhGLc5o9H/LcL//wd0yLESWK5WCoU41EScY5EmozzMqUiiUKSKcUl0v9k4t8s+wM+3zUAsGo+AXuRLahdYwP2SycQWHTA4vcAAPK7b8HUKAgDgGiD4c93/+8//UegJQCAZkmScQAAXkQkLlTKsz/HCAAARKCBKrBBG/TBGCzABhzBBdzBC/xgNoRCJMTCQhBCCmSAHHJgKayCQiiGzbAdKmAv1EAdNMBRaIaTcA4uwlW4Dj1wD/phCJ7BKLyBCQRByAgTYSHaiAFiilgjjggXmYX4IcFIBBKLJCDJiBRRIkuRNUgxUopUIFVIHfI9cgI5h1xGupE7yAAygvyGvEcxlIGyUT3UDLVDuag3GoRGogvQZHQxmo8WoJvQcrQaPYw2oefQq2gP2o8+Q8cwwOgYBzPEbDAuxsNCsTgsCZNjy7EirAyrxhqwVqwDu4n1Y8+xdwQSgUXACTYEd0IgYR5BSFhMWE7YSKggHCQ0EdoJNwkDhFHCJyKTqEu0JroR+cQYYjIxh1hILCPWEo8TLxB7iEPENyQSiUMyJ7mQAkmxpFTSEtJG0m5SI+ksqZs0SBojk8naZGuyBzmULCAryIXkneTD5DPkG+Qh8lsKnWJAcaT4U+IoUspqShnlEOU05QZlmDJBVaOaUt2ooVQRNY9aQq2htlKvUYeoEzR1mjnNgxZJS6WtopXTGmgXaPdpr+h0uhHdlR5Ol9BX0svpR+iX6AP0dwwNhhWDx4hnKBmbGAcYZxl3GK+YTKYZ04sZx1QwNzHrmOeZD5lvVVgqtip8FZHKCpVKlSaVGyovVKmqpqreqgtV81XLVI+pXlN9rkZVM1PjqQnUlqtVqp1Q61MbU2epO6iHqmeob1Q/pH5Z/YkGWcNMw09DpFGgsV/jvMYgC2MZs3gsIWsNq4Z1gTXEJrHN2Xx2KruY/R27iz2qqaE5QzNKM1ezUvOUZj8H45hx+Jx0TgnnKKeX836K3hTvKeIpG6Y0TLkxZVxrqpaXllirSKtRq0frvTau7aedpr1Fu1n7gQ5Bx0onXCdHZ4/OBZ3nU9lT3acKpxZNPTr1ri6qa6UbobtEd79up+6Ynr5egJ5Mb6feeb3n+hx9L/1U/W36p/VHDFgGswwkBtsMzhg8xTVxbzwdL8fb8VFDXcNAQ6VhlWGX4YSRudE8o9VGjUYPjGnGXOMk423GbcajJgYmISZLTepN7ppSTbmmKaY7TDtMx83MzaLN1pk1mz0x1zLnm+eb15vft2BaeFostqi2uGVJsuRaplnutrxuhVo5WaVYVVpds0atna0l1rutu6cRp7lOk06rntZnw7Dxtsm2qbcZsOXYBtuutm22fWFnYhdnt8Wuw+6TvZN9un2N/T0HDYfZDqsdWh1+c7RyFDpWOt6azpzuP33F9JbpL2dYzxDP2DPjthPLKcRpnVOb00dnF2e5c4PziIuJS4LLLpc+Lpsbxt3IveRKdPVxXeF60vWdm7Obwu2o26/uNu5p7ofcn8w0nymeWTNz0MPIQ+BR5dE/C5+VMGvfrH5PQ0+BZ7XnIy9jL5FXrdewt6V3qvdh7xc+9j5yn+M+4zw33jLeWV/MN8C3yLfLT8Nvnl+F30N/I/9k/3r/0QCngCUBZwOJgUGBWwL7+Hp8Ib+OPzrbZfay2e1BjKC5QRVBj4KtguXBrSFoyOyQrSH355jOkc5pDoVQfujW0Adh5mGLw34MJ4WHhVeGP45wiFga0TGXNXfR3ENz30T6RJZE3ptnMU85ry1KNSo+qi5qPNo3ujS6P8YuZlnM1VidWElsSxw5LiquNm5svt/87fOH4p3iC+N7F5gvyF1weaHOwvSFpxapLhIsOpZATIhOOJTwQRAqqBaMJfITdyWOCnnCHcJnIi/RNtGI2ENcKh5O8kgqTXqS7JG8NXkkxTOlLOW5hCepkLxMDUzdmzqeFpp2IG0yPTq9MYOSkZBxQqohTZO2Z+pn5mZ2y6xlhbL+xW6Lty8elQfJa7OQrAVZLQq2QqboVFoo1yoHsmdlV2a/zYnKOZarnivN7cyzytuQN5zvn//tEsIS4ZK2pYZLVy0dWOa9rGo5sjxxedsK4xUFK4ZWBqw8uIq2Km3VT6vtV5eufr0mek1rgV7ByoLBtQFr6wtVCuWFfevc1+1dT1gvWd+1YfqGnRs+FYmKrhTbF5cVf9go3HjlG4dvyr+Z3JS0qavEuWTPZtJm6ebeLZ5bDpaql+aXDm4N2dq0Dd9WtO319kXbL5fNKNu7g7ZDuaO/PLi8ZafJzs07P1SkVPRU+lQ27tLdtWHX+G7R7ht7vPY07NXbW7z3/T7JvttVAVVN1WbVZftJ+7P3P66Jqun4lvttXa1ObXHtxwPSA/0HIw6217nU1R3SPVRSj9Yr60cOxx++/p3vdy0NNg1VjZzG4iNwRHnk6fcJ3/ceDTradox7rOEH0x92HWcdL2pCmvKaRptTmvtbYlu6T8w+0dbq3nr8R9sfD5w0PFl5SvNUyWna6YLTk2fyz4ydlZ19fi753GDborZ752PO32oPb++6EHTh0kX/i+c7vDvOXPK4dPKy2+UTV7hXmq86X23qdOo8/pPTT8e7nLuarrlca7nuer21e2b36RueN87d9L158Rb/1tWeOT3dvfN6b/fF9/XfFt1+cif9zsu72Xcn7q28T7xf9EDtQdlD3YfVP1v+3Njv3H9qwHeg89HcR/cGhYPP/pH1jw9DBY+Zj8uGDYbrnjg+OTniP3L96fynQ89kzyaeF/6i/suuFxYvfvjV69fO0ZjRoZfyl5O/bXyl/erA6xmv28bCxh6+yXgzMV70VvvtwXfcdx3vo98PT+R8IH8o/2j5sfVT0Kf7kxmTk/8EA5jz/GMzLdsAAAAgY0hSTQAAeiUAAICDAAD5/wAAgOkAAHUwAADqYAAAOpgAABdvkl/FRgAAHEJJREFUeNq80KFLREEYBPDfW7AbbYIX5Cw2mxdesggWr5n8S0xGg9liES4JdsNF0SRY5IJB5CEcCIcGwbV893gsImdxYJhvZ75lmU05Z//JNOgNDXrDXNAfmRbdTfA++zCejIwnI6cXR3CA7GdkTNHgKbxlXHbycr9Fwtltc9Uam1t9OEeFpbDr0I3w97CL1cim4dWR1517Vcx9rCccbq/tQ1sbK7H0GXoX+hD6iJuYrzsF5vN9lOlmO5glqKrqOB6aoym+5a04v/gdr/gqvBM8fwMAAP//zNKhaoJhFMbx3/diN5gNwtJcG9hkLHgHRu9hd7CwO/A2rOsDZ7aaHAtfMxhMc7i5cj55+ZiaBB848PCccOA5/3QNlLrkJOwrQt8/JnWqGmiG72T5Gi9HCK40zrJW+DKd+EMPO9zjBnfoxm6I56CwTmQ//BMe8RBHb3/3u3aC7df3gdJMOYVLvGJVo/EN02iiymaZn+MzGlmkoiGhGHRH+bHiDH11/UQT/2mDMg/+AAAA///UljFIA0EURN8diRaKQtBKLUwam3Q2IhELEUwTEoi1nWij9oKIiK2dpLMW8bBRBAsRxMZORBGilW0qLUJCzsLZ8F2SWLvw2b358++43Z3ZDXPpMl7Uc+lyrFjskP9XERpdx4o+MwFXBrctDxSBjJ6zwJLJp5Vf8uqycji3ckVFyeOVhLtWMNxunAX108LnnXUXgKHb6gmpkeHfkopjp0yrsBi4ACKgapzzEhgw6o2E2Ql6BJ6BXW2lSHEGpMQ5U0Sm9txwAQ47cK71jgfhN071b+4PKtEBjUaTVuvHdIMg8IX5l2a+1L96fL9mBxj3sJpZmV61AJtdODVLarbqE6FmdXsus0w5t04ymSAMO7pd0AW787bIqclPAccaO0tMAoOGM2nO2IrBR71v3avfMNiYerf6R8CWyyXC/rYG981M5GWFewYLelxtZjW+Np7u2guwovGTuUB8Gs67bi0Aqz0cdMY7gAA+vJVb0xnfzn0DAAD//9SYy0tVURTGfx7DqzW5mvikayBZJKTSzAiFqOgxUawG/QMK0SBs4MSpg3Bif0A0SuMONQPhGkSBZPhARYXAgqY+JlmK1WRt+VwdLzeoG23Y7LXW2fvsc87+zvq+vfPO9f9CV4Q6KPpi9W9rjHxoGIXZA/FPWew5+Sn3//QNo0Okv5ZbwFXxS2L46oYbE7jquIvfFPuy8Fm90MxFizVI8vAc2ea4Nwm0SubtBAojkzoMTz5GVWiouzu7AC/loY4JVwXOGXMICDwViHQY2LAM+sPaCeGyD8CoceFriwVqSTl+3DQ9qLxbB7y1ewfefBYB0faXr9SkKn/B7OLMKne7O/xKXsnCSR4BhdYOAaVAObD9m+g6kgPyEnHjDhCbX7XGlga+7+35QWmR7oiU143lWaufzJ+SPkeNIs5LrBa4BJwAzlmsQlSOzpEEmsUGeCfPE+bujIB98m4qu8aFk10HVi/9dNy/3E7MZjYjsQIj5yXgm6j8jBv3XmKf5dq82WF7shkzx6zZ6w4xOjcRMJcoLuLenX7m1sd5s5bmeld7NpiMmMgGqJZ4OFKoEkiWxoyvdX6V2Ikc5F5xlmvVHrPNAPPTy/ur9SL9KpsEK5B/KWVtpcEN+acylkQATpv4JiaDlos9be0j16dO7CXXp0eeJ3ycAeBMlMOXSjr/tujJKTku2XJHJW0yZsWkXYCdlgW3TQLodX0+ui0WwEPRlSExrFnbByxHMZnviWnFevO3+E/LTwAAAP//7FpZbIxRFP5mynRStNQSS6oPjbSKqJJaQisitj5oU6nlBSG0QSTigdaSeKARifXB1lAhYbSW2CKImpQ0EUYlaGNG2lIisdReVMfDfHdyHP8MHoiWk5ykc3r+89//v/ee+53v/G0aW7Z1DcX4nrBgk0PpmNaOsdtCbQCBGKf+wu5185rjaBsyis/T7q9Pm4L8D6Lf5ubA+TFmQhoWLJ+FJatmf6OLC2djQlY6AKDlS5DWzwpRQ12mvYGA0QPgMW2vxKJpJC9x2yLGS/p4Bc6qFnGtZCvx2nP69WRd5SefcUfEMrqBcUF2eCL9Xwv/akX1md8+i3j3AHQCMJM+L0WcGto+CiDgZ7xytZlkzDraVtq5ws4BgL/Fjz0ni3CtrgxunwuxXWNw6fRVHCk+jZLtZdi/vRSl+8+hsvwmRo1LhdvnQkVtKVLSksM1dgxo7c1mQYrAg9Gi6oghsh8kBl0tENMANhxMBZBEW2/xoF7unDQAhwAs4MJsIhk1l1VLd16brHSlGvtuZpRo4Z+k0F0iq5sEi3j9AbwBsIM8bBcRJ5HMoEMgteGMP1awfDYVM55jyrMDKDKjaGr6iMSBASR3dN8ZxPbojPSJacjMHYecOZMxbc4UTMrJwKBhSajzNuDZ00AB0m+A7BgFJ8TISVE5PeLk2ZSOYFFutF68GCOV3J1G33IVV4kFkMCivJR6lMjSCaAEwE5i/89cwfVKi9XY88luNAn/Bi4Uw01XAbgE4JlFvIdcKMvIMb8XcZ7wGZ5bZEIpjUo/A8i22yIK7ZqgNuKrqUdluSe0XvGgMH8T8nIKcaT4VLjUnMUJimTtXWVxzsbxpRqNtyA1hnEHGu3I/6cIasvG9CjjxNBeyy6eaXDHq3v2BTCP78Pc9yz/dgr/PrQZPt0sxm4W8eKYokvoEyXi9BLXmR1WqRp7UM/cmWO3ffry4aAdwPogkRflREFeoDBcUZSPXcfWY/OB1Vi7ZSkKNi7Co9onuFfl/Ubv3rqvGw9Xf8PZbFPdl39BXomF8504IpzBbWp4EVRcuI70hFyMjMtGavdMjO03A9kjFyI3YxEaX7z50Q2fAhhtYd9HAFGt7InmvBXVd6zyuQhgsOJNbgBI5Xm9TdhHi3635F/DkUVDmK48yp4DYK+yrVPcrZbDFrZkQb0Yma5+r+F5vlixj7pxBIKouBZ/S3DymjnL54Msl6M9OkZ3gDMqEpFOByKdDkREhPuQAfGK5JIyl623JGWvUZ3oBxZpfDxTrfyiZSiAmxy3bD9UCLZe9k3Lw4zbg8CXMK+VvQzAfIuXnBkm1gwL211BLUlyUS8KL4ENVKdwq/I9b76F0LMxSeTzBz+xtTeIs6m+laepjFZHj1m1ftw+1zu3z5Xg9rlsP9CCENf/1z+gX9m5+pgqqzD+ey8w7+VCZqxUyK/QUsu+BMUiZulmQxG/QDc1L9CHcyqZpWk2LSOzmWgta6aWG1qjr5mylU1trGUpfmNaeCsZowRUBAURL7c/znN4n3vuee9lxSa4+2xnXM573ue8533Ox3Oe3++8odhmZ45tIiSdVgJRkZNS4jOPawLRnpT4zE0p8ZlhoeBwxwpMg0I6XgiC1hCLeGgOeXr7Q/3/xgempbzFYNy2SBIZOvImeifjIdhWncp4qwEs/o96rljE5TqjbAWwtjMZrz+ARf9TlyfAtQdhUrcnwpeYBdpXjqSohj3APkzqmAQgMcjzTAaQAl9Or4zq8GfhSQYF+Oa8J0x63yS6rnJGHrPQmcTK9KY4r9TzRID3JKUr7b2lvnQ+K0jjlXENl+sb0PuuOEx7Og3zX3UpeJ4LrvlTED+wN67UN6iVq8QTJ02rJRA85ZcpllpE+QMBbCHY5AMI3nKCoqMfTGr9StKzEuYZg14WxlsOYAPpLmMd7DQ9Q54myXDcavrdCIE9rmH1fkoRmVQKFHsh6JArNfpWsHrPkl6p53O6N4mM5IUAtvMIicgnFGELgDco/02K8Xql8XxeVmLy/ThctQsF3+djzpKZmOJKRUbWWJZSkZ2biY+L1uBQ1S507RbNb1cpUbPJsQknR2g4/Y0gOCQTgpC6j/IHsxCXlImkw8mwsHspBnqdjZKxZJiLlGIpXPcPzSyyvQZ1msGaBDJMC9Vnp/IDWL23EzrxGhutTgt88EkIKpms9x6mJ4aiUktolpBw2iBCIlwAPqJ28HbLUR9lo6CxwGa8XryzdZmABvaU4PkZr2Pa4/OQlpCDcUOzMWH4s8ga+xLyl2/G1UYBAO8s2YyrDU1Qphk+lYbDBFd5iiKYKAEm9UBN/eB/Ag8aSOkhCKLuhzQlj6GRkUqYnDobtIe0tOHZ5PMFW25aLPRbUjEMw/DaINBtAMDDI8TPxoYmLJyVh8P7S1FZfg6XLtajrvYyLtTUwn36LL4u+A4p8WZg/LovH5evF2EM0tGlVwiJsGuu1WmCsjqoyAuTCr4Ognd7gKVflHsa28FwETSa2uKkGUF8jrAgHcRCqc23csMQ9UREhOOZhdOQlZthmWYvnm6ll0NC77LeV0Mogiqb4Y9An6cpZCOVCYc/ouylhq+DidZ74Y+QV1LdgOCLeKjD6FBv2eHCyYNugsmTKSfdzTTSFzDYRldvOXWe82wmqWB6PBCnv5YFMOBMpc3yjCEarl26ou054RFhyFkwFVnzMyxTdm6GlfH44b5m6nn9CeLI0pTPo/mdp3R6gbvY1DKCpleZ+sIkzcp67qY6uK44mCfE7PT/VE2ds+Syz2AmOzkl06lMFjkYBq3N9fR7iKZeF4BsNsJiyBhSz1C69wSAAvpflSKlzY8AiDEMwzhWuc962LtSX8Rzk5YGTU+NeQFR0T579D816tyEqf2kufYHfFn6e+nFeFivDoNgYqksKlXKNLoqlTKV9Cx7NUnqqGXlLynlD2nqLbXQx6ngF8gxk9eOsmtNhE9CWXKqlTafFHoMSDC2dV6tqzWR8mtNzTjy80mUHvoNJ4/8jl+PlvlRIE4dO4O/zlSoDfmqnfei64OsGzer3Ap/FN1cDMl4rYypEyUmS2H7nvU4ULkD3xzchILd67Bq4yJ4rnvaUukXoahju4lD6756W5DUZxxsAOa0lnQ6kNA9Dfv3mSM45o5u6DvgTiSPTsRV+q5CALlo4RqPor/3KV7YbZqy6qb7Fo33JhsVrblfdyYpOshzOxXPsQtzlAI9myrq6Wu7RQy5TxsNt1AzGsWcaouAjTa6rcfaIqMcWJSzCgnd05DQIw3DYtMxPG4CEnuMhzPaEazCgRb5uQDeU9x0LwQplssP8P1WhZ0cleNKXk9aA2Yq9++kF8/PWB0kx8JKdpPBuaP1Pv1NVwIQXTR1clEdMnkEYBDL26ZZr9fCn9cyipwyKJ2qVA2PDVO3DJFRDkQ6HbA7BAHJ4bQH225+BvOooCobAMxTpoEf4U/n66L0bg8Za6SykNeQ41Gl8XST4XuEf7LGGVBH3RBlT1VB0Qz+QZRqqrcggK5PlHhmHcxPzPDZqZdmlM1V8h7QoBu5fP23tVPk4RQEH99KvmVeGd8Pqs7NCGXkNdMejjPKLtNLGa1ZX1Moj4d8yiFoglbyKMVJ+YnhFeTZ7WB5b7P9pZVUwZc4O5X2enx/O1dpIygKVK3ZQqmkqKUwP6ThY7yGILt9K9nO4oKdVVoCzBodVmyaRhjw/QyElVRT4Hd6yCnsGMaTkk9GjKWhuhuCxr6NIiUGxDn/c6FXeAONF4Qb+Hexu3BVsbtwTLG7MLnYXTij2F34ZYgz2THSv+xde3BU1Rn/7W528yAQpAHR0CpECRTGSCpIO3UVhcKApmaUxAe+6kh561BGBFSsUhWNilABy9NCZYgPnAawaAEJRVCBYsSihlQUGIGAkNdmd5Ps9o/vd9mzd++92Q1go95v5ptZyL3nfufxnfO9jx23aaONbaieQLzo8mYX5nizCwu82YUPerMLi73ZhUu82YVLvdmFc7zZhTO82YVF3uzCXG92YbIdammjjeYht1YwHJLAq7kWmyBRI29CQmv+QA+WltA1i3aXPZDEYO29XXwmyZYYbbCVPGO4W3EVrINxsGGikAeJZ2skzvyROuxssBkvBuaR2ZYhtmrc2YQkGoFDiK5NbUPbgBsVSeULGJf7tOEsMN6dHOQJ/wd6htHbM9uemjYDb0GCA3KIAXtIzj7jrYUkN5lCKBRGMNAIX30D6mp8qKvxob42PqyrqUd9XQMC/iBCIUuH/IPUHeM5/dpDXJaVMA6W12MDxC2sxg2kQ9JIvjJ559Y46BgICebzxUnHMeq/vROUDvYbtPUVJMhfHxWTD3EDB+OkScX3lbHRSty9pGt/ACTI42Qc7QVIi/5akEvZRnUraGxGdGLFIM5tXZzrYAsi9X41yIJU3jls8I5WnzcFUgPlYJx0BiGFaMZpKpXKeO/BpDKMr74B7dJTUXTv9Vi69hn868Dr2HmkFLur1mJ31VrsOhYf7q5ah11HS7Hj4BosKZ2N/FsHw+FwIBhoNNLwcsh8ViFfhZBYiOmQGIbekDAzDxeplvDggQS29IHExQ+BJC9oyYif0TBUASkC5lbQBcnnsoKxkNzuQZBAnYshASlufltDN0W18yG5bEVc1ONM2vVAQus07ED9uCvbuAASivcmJIrrgNLWfEj8xmWQwM9MfltPkxn+SqHBpSw4bd3s4BheDSkU3Y1/dxv0NxMSit4LUpWoVNkYvqA4+yrHLS0BGl2Qqkop3JA2QQKR7uMYJZvQ0wWSpzAQcqWAFvdaAAlcupdj143Pe7iO/kv6KiF5in72P0NpXz/f6RzLNG5cFQA8GuMVw6Dyj9/nx+UDfo4dB9fg7Y9fwfjpd6Jnn+5ISoqEuITDYQQDQTT4/KitrkPNqQjW1/oQaAgiHI4+3RxOB3L69sCUWaOxZf9qLHh9FsKhcMxz7LhV8K5WY1NLs7qFDDQDwCPUHR/jvyeTUZMRieLSoti0GmXXkRG2kJE3cGI2EjdQ5x2D6LBCTe9potHoK05Kk2JAauS/gzztVit0dFHaelZ3SpzQYTUk1/AoF91eSBlIbevqrGOSo5AbTE7w23qazNAKUpWTZrNyQgR07Wv9PcHTfZ+uv2ps7Wsct4ZW0JimtLWaG+VRg/5q9FQBWMFxVOlQwz6XsU9B3bdSlLHdCkmErVHa1893PSSp+BO+4wbgdkISdybqRzYYCKJX7iV48dWZSHInnWay5x5ZhH6ZI5DXeQT6X5CPgd0K4L2kCNfm3Iahl92FYbkRHNJnFK7pWYSB3QrQ/4J85HW+HnmdR+C+Gx/CqW8j5dn6DeyDglFD4aszzJj7DaJvdDETmftDUsJbwlxIqOhGDhooSmoJq+O5K5dxYFXcyVN1ASR0c84ZiPnqLqMxzU2IZISPgHk6ox47IzpEVf+dMNoGhFv5t3NFi9U3Heeq7y6nXLBYgOgrAAEAzc0hdMrseDrNEpA82Y2l29AYbBInXlMzgsFGBPxB+P0BNPj80dgQgN8fRDDYiKamZoQRRigcxodby3HowJGo77k9bqtRMEsBrFR+X8SdbjQXcD6kCOR1JjiYu7Wq5x2mZfVlSgHP6vB5Mp2WqpFpQFOGTjzU44XUjR5FxI+pxYur4baj+VwGdV0jTKdINQmRWhfaxSo+RWqYQTHPqi19u1bQoNB6NUXZHlQL9G2157cfg6SiApFku+NKm1MglQo6JUCjS6FHS2QogiQi/MyEHq1K+CxELjSsaiWzJbcw15nUYe9WJMpT4XA44ETkzq8WIa1dCtbvWY69NRvw76p1rcI9x9fj4xPr0Tcv+rMqgxuAWRmiUoo9f+SCm0dZ/yRPgABi7wI1Oi0/4cTVtYDHyZT7OLmjDIwf7xuIhyoepj6dBwmK7QoJggVPWQ9Fx+48mU9Z0FNLcfN+bhi/QCR/fALE57qFv/e10Ja+XS3jyK8s6pOKaH+FoiM9yk2wxqCtGn57AqQGywBESmesgyRrLCNTbucYxUtjEFKEoIH64bXUOzVDmRE91RTPb6NY2heR5Md65XTyxcESt7Uw11Xs+zOQoJH8JKc798tvy5ucFiLKdwaNwSbsK98fpTvq7TsWr/u5m/YmE+rFsLdb+HyICnm8Yl0KpDrRSgOxpJmbREttpFGsnYzYSPNGSAZwrqLUt4QZkKgifQbUZp7uGQn0T8P+ythfzP/T5wh+QDE9K472MslwH+naOASJdroQkRo18aJLJ/VsptX0/Dje1dIzPlXeL+HfnIhOhNKLoJptZGkc30miTjvU4XCW+pvqcbi6Ak5YVVo0OIRmP7QAPZMH4cqs32LAhWcHr+pxMz7Z+RlSUk19szvauFtmFXXDkTCuoWDDDwdO8KQbT3E1YXDAASfNppUxwmuKB3t2/AcHKqIz/6Y+PRY7j5ZizNRRyPtlX2Rd1BWdMjsi47z2aNc+Dent0+BKcsHtTkJKWjJSUltGT7IHLZxoi9v4ZByh+X4NrOsd2vDDgLc53wlusmEkOd1I83SAk3rQ6BjFx+lEKBTCzVeNw/OPLkYoFMnR7tAxHfdMGomFb/wJa7a/jH+Uv4J3P12JzZ+vwqbPV2H7129i+MhBqK89G3W98BAil4dawST6rDSYpijPNthwLmAKLIrjxLBdOAzAgX5Zg0/LqpsgoWIGBpVUvPW3d3BlVgEGditA0TUTMHPiC1g+73WsK9mEsg0fYus7H2LntnLs3r4Xu7fvxd9X/RPbNu5CSqrnTDs2Gy1X+tMgj1axPlSYB1tY534NiTxYAeAGizbvgPif5iK6ZowKg0njcxaTkAqpDDGHu+Vj/L0F1sUNpkKK5b0G8UEagQtSbG4+Yq/LiRemkb4XKAF1MHnuSUhYn/63HrLYvydoCU5vBU1FNLrMhEnxIIjj+xLlt5kRLhvioJ9PC6MRZNIo8wSNdOeZPHc5JIyuGLF3QKnQlW3NZR9OB6uEws1RkSsrIJUzmgxXTloyPMlufHPwGDav346lc0owe9pCPDyuGDPGFmPyHbPwwO2P44HbH0fxw39BXU09XC7XmTDdPTzt4hedJazpUyrGtTAPAu+PSPTFWJNnhnBh3cLT1EjZ7kKGq6AVrR2MA8qdEF/bdIjPNJeWy2KIM94I7uU7o6k73oPoux+hGHTWc+F0R+IFPG6CuGLupvHEBQP3EqEzIi6QDJgX8Z+HiKP6UCKWc52hpBbiiki1WNyaF+onUC6f0439Is7hOG4wRvAC+32MImQvk7aKucFNoTHGjLZLOa4fcC311DekN2K42WCiGmPszZKtg12c1OUJvrcV0X6hzYgutKhCOcTHk4RI+JIe3uWu/TJ3baPFc4wnZncO9HGTbzZBHPYhiBX5Pf7/YcRW0FZ38/WQMKNibhBGpWVTIM72Kp6gieqYb/CUW0jGS4F5Pd2p3IyehET47Lc4rY5wzNKNbAhxwHDOzybEXoanwQMQH+U0ztdJg2dCEJ/u/TzxzE6puyD+1ByedhUmbRVxA32KG4NZLa0vIa6Ln/KErLZiPHXg0jkp3xV8xB3iCouBtoLFiL565UXEVkXVYCN3vxchDnErmn4PMfub3XH6NRfsRAB/NXkmQOb1c0Fq4vNui3c0FWA8d9cDFsanJ/jcO2dgLBjDjWY52zSCbyH+uOncEMpNnmtkfydAbnGsbgVNyzlHi8ykMDLH78gELyH6NkwV6iAhhOMQW41PZao/k+ZHdJu43qo5mcy+EJHoJz0c4pp4mhvnN/EwHiDORK2y0TBEYs3OJhzmse2AOFa/7zddft+hEeKf9NlDcW4h3tIPG2gx1Jy1d0BSiE4m8C0fxcH7Ic5SB62OS+xpsOFHx3itKE1WU1ZZsrKssuSGssqSTnFc/6thu7LKEm9ZZclclp6zy7zZ+OMt72fvPTbY8N3D/wYAXIFjsEEdpYwAAAAASUVORK5CYII=';
+
+// ── Initial data ──────────────────────────────────────────────────────────────
+const initialData = {
+  project: {
+    project_no: "7001_294",
+    project_name: "Planta ALU Vía Límpia",
+    client: "COPEC",
+    proposal_no: "C4053",
+    rfi_no: "100-001"
+  },
+  parties: {
+    to: { company: "COPEC", department: "Área de Ingeniería/Engineering" },
+    contractor: "ESPACIOCORP",
+    from: { name: "Sergio Formas", email: "sformas@espaciocorp.cl" },
+    cc: [
+      { name: "Antonio Suarez", email: "antonio.suarez@copec.cl" },
+      { name: "Jesus Martinez", email: "jmartinezl@vialimpiaspa.cl" }
+    ]
+  },
+  reference_documents: [
+    "Se adjunta listado de documentos revisados en la biblioteca de antecedentes del proyecto, incluyendo RCA, Ingeniería Básica VLP-470 y anexos. Se solicita complementar con cualquier documento adicional relevante para la definición del expediente IFC y Permiso de Edificación."
+  ],
+  rfi_description: {
+    summary: "En base a la revisión de la biblioteca de antecedentes del proyecto (RCA, Ingeniería Básica VLP-470 y anexos), se solicita complementar y consolidar información para la correcta definición habilitante del expediente IFC y su correspondiente Permiso de Edificación:",
+    items: [
+      {
+        title: "Consolidación de Edificaciones del proyecto",
+        description: "Se identifican antecedentes parciales en arquitectura (5000), layout (4350) y RCA, sin consolidación única.",
+        subitems: [
+          "Emitir listado oficial indicando tags por edificios/recintos) del proyecto (Administrativo, Operaciones, Equipamiento, Mantenimiento, Bodegas)",
+          "Relacionar edificios con planos estructurales existentes (5230, 5240, 5250, 5260)",
+          "Indicar si existen edificios adicionales no modelados en arquitectura",
+          "Vincular cada edificio con su uso operacional"
+        ]
+      },
+      {
+        title: "Planimetría consolidada del proyecto",
+        description: "Existen múltiples fuentes: layout general (4350), topografía (13140), KMZ y modelos 3D, sin integración única.",
+        subitems: [
+          "Plano general consolidado georreferenciado (DWG base)",
+          "Integración de layout proceso (4300) + arquitectura (5000)",
+          "Definición de límites de edificaciones y áreas",
+          "Coherencia entre KMZ, topografía y layout"
+        ]
+      },
+      {
+        title: "Definición del Área de Proceso",
+        description: "Se dispone de P&ID (4340), diagramas de bloques (4310) y memorias (4130), pero no existe definición constructiva.",
+        subitems: [
+          "Definir y aclarar qué área de proceso corresponde a estructura techada, abierta o mixta",
+          "Delimitar áreas como losas, edificaciones, áreas de almacenamiento, etc.",
+          "Indicar requerimientos estructurales (fundaciones, racks, soportes)"
+        ]
+      },
+      {
+        title: "Infraestructura de almacenamiento (Tank Farm)",
+        description: "Se cuenta con memorias de cálculo (6210) y P&ID (4340), pero falta definición arquitectónica/constructiva.",
+        subitems: [
+          "Plano de implantación de estanques (coherente con 4340 y 4350)",
+          "Definición de pretiles (dimensiones y capacidad)",
+          "Clasificación de áreas peligrosas (4160) aplicada a layout<mark style=\"color:red\">&lt;---REVISAR SI APLICA para esta área---&gt;</mark>",
+          "Relación con DS 43/2015 <mark style=\"color:red\">&lt;---REVISAR SI APLICA para esta área---&gt;</mark>"
+        ]
+      },
+      {
+        title: "Edificios de soporte y utilidades",
+        description: "Se identifican referencias en mecánica (6412 sala de utilities) y procesos (Nodo 4 Utilities), sin consolidación arquitectónica.",
+        subitems: [
+          "Definir sala de calderas, compresores, oxidación térmica",
+          "Plano y memoria características constructivas de sala de subestación eléctrica",
+          "Definir ubicación y características de generador diésel",
+          "Definir ubicación y características de sala de calderas"
+        ]
+      },
+      {
+        title: "Memorias técnicas de disciplina necesarias para PE",
+        description: "Memorias descriptivas de: (sanitaria (sistemas particulares), Aguas lluvias(saneamiento), integradas para Permiso de Edificación",
+        subitems: [
+          "Memoria caracteristicas sistemas particulares sanitarios (agua potable, servidas, RILES – ref. 4136)",
+          "Memoria eléctrica (10210, 10220)",
+          "Memoria de riesgos y áreas peligrosas (4160, HAZOP 4510)"
+        ]
+      },
+      {
+        title: "Clasificación normativa y cumplimiento",
+        description: "Se requiere aterrizar normativa a nivel de edificación (no solo proceso).",
+        subitems: [
+          "Clasificación de uso por edificio (OGUC)",
+          "Carga de ocupación por recinto",
+          "Resistencia al fuego de edificaciones",
+          "Aplicación DS 43/2015 (bodegas) y DS 594 (habitabilidad)"
+        ]
+      },
+      {
+        title: "Aclaraciones",
+        description: "Agradeceremos aclarar los siguientes puntos:",
+        subitems: [
+          {
+            name: "Coordinación Proceso - Edificaciones",
+            description: "Coherencia entre disciplinas",
+            subsubitems: [
+              "Confirmar que layout 4350 es versión vigente del proyecto",
+              "Validar coherencia entre P&ID (4340) y layout general",
+              "Indicar si modelo 3D arquitectura (5210) está actualizado",
+              "Confirmar consistencia entre memorias y planos"
+            ]
+          },
+          {
+            name: "Validar ingeniería que se presentará para IFC",
+            description: "Validación de la ingeniería que se presentará en el IFC. En el entendido que el IFC actua como permiso habilitante de las construcciones en área rural y diferencias respecto de lo que se presentará en el permiso generan riesgos",
+            subsubitems: [
+              "Indicar qué documentos corresponden a base oficial para IFC",
+              "Confirmar nivel de ingeniería actual (IB vs IFC)",
+              "Definir brechas identificadas por el cliente",
+              "Confirmar estrategia de desarrollo del expediente DOM"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  attachments: {
+    includes_documents: true,
+    documents: [
+      "control_documentos_biblioteca.xlsx",
+      "Mdificacion Planta Octubre 2024.pdf"
+    ]
+  },
+  dates: { origin_date: "2026-04-17", answer_date: "2026-04-24", return_date: "" },
+  signatures: {
+    originator: { name: "Sergio Formas", job_title: "Jefe Proyecto" },
+    received_by: { name: "", job_title: "", date: "" },
+    answer_by: { name: "", job_title: "" }
+  },
+  answer: { text: "" },
+  metadata: {
+    revision_date: "marzo 2026",
+    area: "Administración de Contrato",
+    file_label: "Request for Information (RFI)",
+    page: "1 of 1"
+  }
+};
+
+let rfiData = JSON.parse(JSON.stringify(initialData));
+
+// ── RFI HTML generator ────────────────────────────────────────────────────────
+function generateRFIHtml(d) {
+  const p = d.project;
+  const parties = d.parties;
+  const att = d.attachments;
+  const dates = d.dates;
+  const sigs = d.signatures;
+  const meta = d.metadata;
+  const rfiCode = p.project_no + '-RFI-' + p.rfi_no;
+
+  function esc(s) {
+    if (s == null) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  // Use raw string for content that may contain intentional HTML (mark tags)
+  function raw(s) { return s == null ? '' : String(s); }
+
+  function renderCc(cc) {
+    if (!cc || !cc.length) return '';
+    return '<ul class="subsub-list">' + cc.map(c => '<li>' + esc(c.name) + ' (' + esc(c.email) + ')</li>').join('') + '</ul>';
+  }
+
+  function renderRefDocs(refs) {
+    if (!refs || !refs.length) return '';
+    return refs.map(r => '<li>' + raw(r) + '</li>').join('');
+  }
+
+  function renderSubitems(subitems) {
+    if (!subitems || !subitems.length) return '';
+    const items = subitems.map(sub => {
+      if (typeof sub === 'string') return '<li>' + raw(sub) + '</li>';
+      const ssHtml = sub.subsubitems && sub.subsubitems.length
+        ? '<ol class="nivel3">' + sub.subsubitems.map(s => '<li>' + raw(s) + '</li>').join('') + '</ol>'
+        : '';
+      return '<li><strong>' + esc(sub.name) + '</strong>' + (sub.description ? ': ' + raw(sub.description) : '') + ssHtml + '</li>';
+    }).join('');
+    return '<ol class="nivel2">' + items + '</ol>';
+  }
+
+  function renderItems(items) {
+    if (!items || !items.length) return '';
+    return items.map((item, i) => {
+      const subs = item.subitems || item.subsubitems || [];
+      return '<tr class="item-row keep-together"><td class="desc-cell"><div class="item-block">' +
+        '<div class="item-title">' + (i+1) + '. <strong>' + esc(item.title) + '</strong></div>' +
+        (item.description ? '<div class="description">' + raw(item.description) + '</div>' : '') +
+        renderSubitems(subs) +
+        '</div></td></tr>';
+    }).join('');
+  }
+
+  function renderDocs(docs) {
+    if (!docs || !docs.length) return '';
+    return '<ul class="subsub-list">' + docs.map(d => '<li>' + esc(d) + '</li>').join('') + '</ul>';
+  }
+
+  const logoPath = LOGO_B64;
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>${esc(rfiCode)}</title>
+<style>
+.page{max-width:1000px;margin:0 auto;padding:20px 10px 30mm 10px;box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#111;margin:20px;line-height:1.3}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.logo img{max-height:70px;max-width:220px;object-fit:contain}
+.header-text{text-align:right}
+.right{text-align:right}
+.title{font-weight:bold;font-size:18px;margin-bottom:2px;text-transform:uppercase}
+.subtitle{font-weight:normal;font-size:16px;margin-bottom:2px}
+table{width:100%;border-collapse:collapse;margin-bottom:8px}
+td,th{padding:6px 8px;vertical-align:top;border:1px solid #777;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.label{width:25%;font-weight:bold}
+.label1{width:14%;text-align:right;font-size:18px;font-weight:bold}
+.label2{width:25%;font-size:11px;font-weight:bold}
+.section-title{font-weight:bold;margin-top:14px;margin-bottom:6px;text-transform:uppercase;page-break-after:avoid;break-after:avoid}
+ul,ol{margin-top:4px;margin-bottom:4px}
+.signature-box{height:50px}
+.answer-box{height:180px;white-space:pre-wrap}
+.footer{position:fixed;bottom:10mm;left:8mm;right:8mm;display:flex;justify-content:space-between;gap:10px;border-top:1px solid #777;padding-top:6px;font-size:10px;color:#444}
+.description{margin-top:4px;margin-bottom:4px;font-style:italic;padding-left:12px}
+.nivel2{list-style-type:upper-alpha;margin-top:4px;margin-bottom:4px}
+.nivel3{list-style-type:lower-alpha;margin-top:4px;margin-bottom:4px}
+.subsub-list{vertical-align:top;margin-top:4px;margin-bottom:4px;padding-left:18px;list-style-type:square}
+.rfi-desc-table{width:100%;border-collapse:collapse;margin-bottom:12px}
+.rfi-desc-table thead{display:table-header-group}
+.rfi-desc-table .desc-head{padding:0;height:0;line-height:0;font-size:0;border-left:1px solid #777;border-right:1px solid #777;border-top:1px solid #777;border-bottom:0;background:transparent}
+.rfi-desc-table td.desc-cell{border-left:1px solid #777;border-right:1px solid #777;border-top:0;border-bottom:0;padding:6px 8px;vertical-align:top}
+.rfi-desc-table tbody tr:last-child td.desc-cell{border-bottom:1px solid #777}
+.summary-cell{padding-top:8px;padding-bottom:4px}
+.rfi-summary{margin:0;font-style:italic}
+.item-block{break-inside:avoid;page-break-inside:avoid}
+.item-title{margin-bottom:3px;break-after:avoid;page-break-after:avoid}
+.keep-together{break-inside:avoid-page;page-break-inside:avoid}
+@media print{
+  .page{max-width:1000px;margin:0 auto;padding:20px 10px 30mm 10px;box-sizing:border-box}
+  table{page-break-inside:auto}
+  tr{page-break-inside:avoid;break-inside:avoid}
+  .rfi-desc-table thead{display:table-header-group}
+  .keep-together{break-inside:avoid-page;page-break-inside:avoid}
+  .item-block{break-inside:avoid-page;page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="logo"><img src="${logoPath}" alt="ESPACIOCORP"></div>
+    <div class="header-text">
+      <div class="right title">REQUEST FOR INFORMATION (RFI)</div>
+      <div class="right subtitle">Project / Proyecto: ${esc(p.project_name)}</div>
+    </div>
+  </div>
+
+  <table>
+    <tr>
+      <td class="label">N° Proyecto / Proj. No</td>
+      <td>${esc(p.project_no)}</td>
+      <td class="label1">${esc(p.project_no)} - RFI</td>
+      <td class="label1" style="text-align:left">-${esc(p.rfi_no)}</td>
+    </tr>
+    <tr>
+      <td class="label">Nombre Proyecto / Proj. Name</td>
+      <td>${esc(p.project_name)}</td>
+      <td class="label" style="text-align:right">N° Cotización / Proposal</td>
+      <td style="text-align:center">${esc(p.proposal_no)}</td>
+    </tr>
+    <tr><td class="label">Cliente / Client</td><td colspan="3">${esc(p.client)}</td></tr>
+    <tr><td class="label">To</td><td colspan="3">${esc(parties.to.company)} – ${esc(parties.to.department)}</td></tr>
+    <tr><td class="label">Consultor / Consultant</td><td colspan="3">${esc(parties.contractor)}</td></tr>
+    <tr><td class="label">De / From</td><td colspan="3">${esc(parties.from.name)} (${esc(parties.from.email)})</td></tr>
+    <tr><td class="label">Cc</td><td colspan="3">${renderCc(parties.cc)}</td></tr>
+  </table>
+
+  <div class="section-title">Documentos de referencia / Reference Documents</div>
+  <table><tr><td><ul class="subsub-list">${renderRefDocs(d.reference_documents)}</ul></td></tr></table>
+
+  <div class="section-title">Descripción de RFI / RFI Description</div>
+  <table class="rfi-desc-table">
+    <thead><tr><th class="desc-head"></th></tr></thead>
+    <tbody>
+      <tr class="summary-row keep-together">
+        <td class="desc-cell summary-cell"><p class="rfi-summary">${raw(d.rfi_description.summary)}</p></td>
+      </tr>
+      ${renderItems(d.rfi_description.items)}
+    </tbody>
+  </table>
+
+  <table>
+    <tr>
+      <td class="label2">Acompaña anexos / Includes documents</td>
+      <td>${att.includes_documents ? 'Sí / Yes' : 'No'}</td>
+      <td class="label2">Fecha de Respuesta / Answer Date</td>
+      <td>${esc(dates.answer_date)}</td>
+    </tr>
+    <tr>
+      <td class="label2">Documentos adjuntos / Attached documents</td>
+      <td colspan="3">${renderDocs(att.documents)}</td>
+    </tr>
+    <tr>
+      <td class="label">Firma Originador / Originator Signature</td>
+      <td class="signature-box"></td>
+      <td class="label">Recibido por / Received by</td>
+      <td class="signature-box"></td>
+    </tr>
+    <tr>
+      <td class="label">Fecha / Date</td><td>${esc(dates.origin_date)}</td>
+      <td class="label">Fecha / Date</td><td>${esc(sigs.received_by.date)}</td>
+    </tr>
+    <tr>
+      <td class="label">Nombre / Name</td><td>${esc(sigs.originator.name)}</td>
+      <td class="label">Nombre / Name</td><td>${esc(sigs.received_by.name)}</td>
+    </tr>
+    <tr>
+      <td class="label">Cargo / Job Title</td><td>${esc(sigs.originator.job_title)}</td>
+      <td class="label">Cargo / Job Title</td><td>${esc(sigs.received_by.job_title)}</td>
+    </tr>
+  </table>
+
+  <div class="section-title">Respuesta / Answer</div>
+  <table>
+    <tr><td class="answer-box" colspan="4">${raw(d.answer.text)}</td></tr>
+    <tr>
+      <td class="label2">Acompaña documentos / Includes documents</td><td></td>
+      <td class="label2">Fecha de Devolución RFI al Contratista / Return Date</td>
+      <td>${esc(dates.return_date)}</td>
+    </tr>
+    <tr><td class="label" colspan="3">Firma / Signature</td><td class="signature-box"></td></tr>
+    <tr>
+      <td class="label">Nombre / Name</td><td>${esc(sigs.answer_by.name)}</td>
+      <td class="label">Cargo / Job title</td><td>${esc(sigs.answer_by.job_title)}</td>
+    </tr>
+  </table>
+
+  <div class="footer">
+    <div>(Revision Date: ${esc(meta.revision_date)})</div>
+    <div>${esc(meta.area)}</div>
+    <div>File: ${esc(rfiCode)}</div>
+    <div>Page ${esc(meta.page)}</div>
+  </div>
+</div>
+</body>
+</html>`;
+}
+
+// ── Preview ───────────────────────────────────────────────────────────────────
+let previewTimer = null;
+function updatePreview() {
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(() => {
+    document.getElementById('preview-frame').srcdoc = generateRFIHtml(rfiData);
+  }, 150);
+}
+
+// ── DOM helpers ───────────────────────────────────────────────────────────────
+function mk(tag, cls) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  return e;
+}
+
+function field(labelText, inputEl) {
+  const wrap = mk('div', 'field');
+  const lbl = mk('label');
+  lbl.textContent = labelText;
+  wrap.appendChild(lbl);
+  wrap.appendChild(inputEl);
+  return wrap;
+}
+
+function inp(val, cb, type) {
+  const el = mk('input');
+  el.type = type || 'text';
+  el.value = val || '';
+  el.addEventListener('input', () => { cb(el.value); updatePreview(); });
+  return el;
+}
+
+function ta(val, cb, rows) {
+  const el = mk('textarea');
+  el.rows = rows || 3;
+  el.value = val || '';
+  el.addEventListener('input', () => { cb(el.value); updatePreview(); });
+  return el;
+}
+
+function subTitle(text) {
+  const d = mk('div', 'subsection-title');
+  d.textContent = text;
+  return d;
+}
+
+function section(title, id, builder, open) {
+  const sec = mk('div', 'section');
+  const hdr = mk('div', 'section-header' + (open ? ' open' : ''));
+  hdr.innerHTML = title + ' <span class="chevron">&#9660;</span>';
+  const body = mk('div', 'section-body' + (open ? ' open' : ''));
+  body.id = id;
+  hdr.addEventListener('click', () => {
+    const isOpen = body.classList.toggle('open');
+    hdr.classList.toggle('open', isOpen);
+  });
+  builder(body);
+  sec.appendChild(hdr);
+  sec.appendChild(body);
+  return sec;
+}
+
+function addBtn(label, onClick) {
+  const b = mk('button', 'btn-add');
+  b.textContent = label;
+  b.addEventListener('click', onClick);
+  return b;
+}
+
+function removeBtn(onClick) {
+  const b = mk('button', 'btn-remove');
+  b.textContent = '✕';
+  b.addEventListener('click', onClick);
+  return b;
+}
+
+// ── Array builders ────────────────────────────────────────────────────────────
+function buildCcArray(container, cc) {
+  container.innerHTML = '';
+  const wrap = mk('div', 'array-container');
+  cc.forEach((item, i) => {
+    const row = mk('div', 'array-item');
+    row.style.flexDirection = 'column';
+    const top = mk('div');
+    top.style.cssText = 'display:flex;gap:6px;width:100%';
+    const ni = mk('input'); ni.type='text'; ni.placeholder='Nombre'; ni.value=item.name||'';
+    ni.style.cssText='flex:1;padding:4px 6px;border:1px solid #e0d8ed;border-radius:3px;font-size:12px;font-family:Arial';
+    ni.addEventListener('input', () => { cc[i].name = ni.value; updatePreview(); });
+    const ei = mk('input'); ei.type='email'; ei.placeholder='Email'; ei.value=item.email||'';
+    ei.style.cssText='flex:1;padding:4px 6px;border:1px solid #e0d8ed;border-radius:3px;font-size:12px;font-family:Arial';
+    ei.addEventListener('input', () => { cc[i].email = ei.value; updatePreview(); });
+    const rb = removeBtn(() => { cc.splice(i,1); buildCcArray(container,cc); updatePreview(); });
+    top.append(ni, ei, rb);
+    row.appendChild(top);
+    wrap.appendChild(row);
+  });
+  container.appendChild(wrap);
+  container.appendChild(addBtn('+ Agregar Cc', () => { cc.push({name:'',email:''}); buildCcArray(container,cc); updatePreview(); }));
+}
+
+function buildStringArray(container, arr, multiline) {
+  container.innerHTML = '';
+  const wrap = mk('div', 'array-container');
+  arr.forEach((val, i) => {
+    const row = mk('div', 'array-item');
+    let el;
+    if (multiline) {
+      el = mk('textarea'); el.rows=2; el.value=val||'';
+      el.style.cssText='flex:1;padding:4px 6px;border:1px solid #e0d8ed;border-radius:3px;font-size:11px;font-family:Arial;resize:vertical';
+    } else {
+      el = mk('input'); el.type='text'; el.value=val||'';
+      el.style.cssText='flex:1;padding:4px 6px;border:1px solid #e0d8ed;border-radius:3px;font-size:12px;font-family:Arial';
+    }
+    el.addEventListener('input', () => { arr[i]=el.value; updatePreview(); });
+    const rb = removeBtn(() => { arr.splice(i,1); buildStringArray(container,arr,multiline); updatePreview(); });
+    row.append(el, rb);
+    wrap.appendChild(row);
+  });
+  container.appendChild(wrap);
+  container.appendChild(addBtn('+ Agregar', () => { arr.push(''); buildStringArray(container,arr,multiline); updatePreview(); }));
+}
+
+function buildDocsArray(container, arr) {
+  container.innerHTML = '';
+  const wrap = mk('div', 'array-container');
+  arr.forEach((val,i) => {
+    const row = mk('div', 'array-item');
+    const el = mk('input'); el.type='text'; el.value=val||'';
+    el.style.cssText='flex:1;padding:4px 6px;border:1px solid #e0d8ed;border-radius:3px;font-size:12px;font-family:Arial';
+    el.addEventListener('input', () => { arr[i]=el.value; updatePreview(); });
+    const rb = removeBtn(() => { arr.splice(i,1); buildDocsArray(container,arr); updatePreview(); });
+    row.append(el, rb);
+    wrap.appendChild(row);
+  });
+  container.appendChild(wrap);
+  container.appendChild(addBtn('+ Agregar documento', () => { arr.push(''); buildDocsArray(container,arr); updatePreview(); }));
+}
+
+// ── RFI Item editor ───────────────────────────────────────────────────────────
+function buildItemEditor(container, items) {
+  container.innerHTML = '';
+
+  items.forEach((item, idx) => {
+    const editor = mk('div', 'item-editor');
+    const hdr = mk('div', 'item-editor-header');
+    const titleSpan = mk('span', 'item-editor-title');
+    titleSpan.textContent = (idx+1) + '. ' + (item.title || '(sin título)');
+    const chev = mk('span'); chev.textContent='▼'; chev.style.cssText='font-size:10px;transition:transform 0.2s;flex-shrink:0';
+    const rb = removeBtn(e => {
+      e.stopPropagation();
+      items.splice(idx,1); buildItemEditor(container,items); updatePreview();
+    });
+    rb.style.cssText='margin-left:8px;font-size:10px;padding:2px 6px;flex-shrink:0';
+
+    const body = mk('div', 'item-editor-body');
+    hdr.addEventListener('click', () => {
+      body.classList.toggle('open');
+      chev.style.transform = body.classList.contains('open') ? 'rotate(180deg)' : '';
+    });
+    hdr.append(titleSpan, chev, rb);
+
+    // Title
+    const titleInp = inp(item.title, v => {
+      item.title = v;
+      titleSpan.textContent = (idx+1) + '. ' + (v || '(sin título)');
+    });
+    body.appendChild(field('Título / Title', titleInp));
+
+    // Description
+    body.appendChild(field('Descripción / Description', ta(item.description, v => item.description = v, 2)));
+
+    // Subitems
+    const subArr = item.subitems || (item.subsubitems ? (item.subitems = item.subsubitems, delete item.subsubitems, item.subitems) : null);
+    if (subArr !== null && subArr !== undefined) {
+      body.appendChild(subTitle('Sub-ítems'));
+      const subCont = mk('div');
+      body.appendChild(subCont);
+      buildSubitemsEditor(subCont, subArr);
+    } else {
+      const noBtn = addBtn('+ Agregar sub-ítems', () => {
+        item.subitems = [''];
+        buildItemEditor(container, items);
+        updatePreview();
+      });
+      noBtn.style.marginTop='6px';
+      body.appendChild(noBtn);
+    }
+
+    editor.append(hdr, body);
+    container.appendChild(editor);
+  });
+
+  const addItemBtn = addBtn('+ Agregar ítem RFI', () => {
+    items.push({ title: 'Nuevo ítem', description: '', subitems: [] });
+    buildItemEditor(container, items);
+    updatePreview();
+  });
+  addItemBtn.style.cssText='margin-top:8px;width:100%;text-align:center;display:block';
+  container.appendChild(addItemBtn);
+}
+
+function buildSubitemsEditor(container, arr) {
+  container.innerHTML = '';
+  const wrap = mk('div', 'array-container');
+
+  arr.forEach((sub, si) => {
+    if (typeof sub === 'string') {
+      const row = mk('div', 'array-item');
+      const el = mk('textarea'); el.rows=2; el.value=sub||'';
+      el.style.cssText='flex:1;padding:4px 6px;border:1px solid #e0d8ed;border-radius:3px;font-size:11px;font-family:Arial;resize:vertical';
+      el.addEventListener('input', () => { arr[si]=el.value; updatePreview(); });
+      const rb = removeBtn(() => { arr.splice(si,1); buildSubitemsEditor(container,arr); updatePreview(); });
+      rb.style.padding='2px 6px';
+      row.append(el, rb);
+      wrap.appendChild(row);
+    } else {
+      // Named subitem
+      const sed = mk('div', 'subitem-editor');
+      const shdr = mk('div', 'subitem-editor-header');
+      const ni = mk('input'); ni.type='text'; ni.placeholder='Nombre del sub-ítem'; ni.value=sub.name||'';
+      ni.style.cssText='flex:1;padding:3px 6px;border:1px solid #d0c8e8;border-radius:3px;font-size:12px;font-weight:bold;font-family:Arial';
+      ni.addEventListener('input', () => { sub.name=ni.value; updatePreview(); });
+      const rb = removeBtn(() => { arr.splice(si,1); buildSubitemsEditor(container,arr); updatePreview(); });
+      rb.style.padding='2px 6px';
+      shdr.append(ni, rb);
+
+      const sbody = mk('div', 'subitem-editor-body');
+      const descTa = mk('textarea'); descTa.rows=2; descTa.placeholder='Descripción'; descTa.value=sub.description||'';
+      descTa.style.cssText='width:100%;padding:4px 6px;border:1px solid #d0c8e8;border-radius:3px;font-size:11px;font-family:Arial;resize:vertical;margin-bottom:6px;box-sizing:border-box';
+      descTa.addEventListener('input', () => { sub.description=descTa.value; updatePreview(); });
+      sbody.appendChild(descTa);
+
+      const ssTitle = mk('div');
+      ssTitle.textContent='Sub-sub-ítems:';
+      ssTitle.style.cssText='font-size:10px;font-weight:bold;color:#6b5f7a;margin-bottom:4px';
+      sbody.appendChild(ssTitle);
+
+      const ssCont = mk('div');
+      sbody.appendChild(ssCont);
+
+      function buildSS() {
+        ssCont.innerHTML='';
+        if (!sub.subsubitems) sub.subsubitems=[];
+        const ssWrap = mk('div', 'subsub-container');
+        sub.subsubitems.forEach((ss,ssi) => {
+          const row = mk('div', 'subsub-item');
+          const el = mk('input'); el.type='text'; el.value=ss||'';
+          el.addEventListener('input', () => { sub.subsubitems[ssi]=el.value; updatePreview(); });
+          const rb = removeBtn(() => { sub.subsubitems.splice(ssi,1); buildSS(); updatePreview(); });
+          rb.style.cssText='padding:2px 5px;font-size:10px';
+          row.append(el, rb);
+          ssWrap.appendChild(row);
+        });
+        ssCont.appendChild(ssWrap);
+        const ssAdd = addBtn('+ Sub-sub-ítem', () => { sub.subsubitems.push(''); buildSS(); updatePreview(); });
+        ssAdd.style.cssText='font-size:10px;padding:3px 8px;margin-top:4px';
+        ssCont.appendChild(ssAdd);
+      }
+      buildSS();
+
+      sed.append(shdr, sbody);
+      wrap.appendChild(sed);
+    }
+  });
+
+  container.appendChild(wrap);
+
+  const btnRow = mk('div'); btnRow.style.cssText='display:flex;gap:6px;margin-top:5px';
+  const addSimple = addBtn('+ Sub-ítem texto', () => { arr.push(''); buildSubitemsEditor(container,arr); updatePreview(); });
+  const addNamed = addBtn('+ Sub-ítem con nombre', () => { arr.push({name:'',description:'',subsubitems:[]}); buildSubitemsEditor(container,arr); updatePreview(); });
+  btnRow.append(addSimple, addNamed);
+  container.appendChild(btnRow);
+}
+
+// ── Build form ────────────────────────────────────────────────────────────────
+function buildForm() {
+  const container = document.getElementById('form-container');
+  container.innerHTML = '';
+  const d = rfiData;
+
+  // 1. Proyecto
+  container.appendChild(section('1. Proyecto / Project', 'sec-proyecto', body => {
+    body.appendChild(field('N° Proyecto / Proj. No', inp(d.project.project_no, v => d.project.project_no=v)));
+    body.appendChild(field('Nombre Proyecto / Proj. Name', inp(d.project.project_name, v => d.project.project_name=v)));
+    body.appendChild(field('Cliente / Client', inp(d.project.client, v => d.project.client=v)));
+    body.appendChild(field('N° Propuesta / Proposal No', inp(d.project.proposal_no, v => d.project.proposal_no=v)));
+    body.appendChild(field('N° RFI (formato 000-000)', inp(d.project.rfi_no, v => d.project.rfi_no=v)));
+  }, true));
+
+  // 2. Partes
+  container.appendChild(section('2. Partes / Parties', 'sec-partes', body => {
+    body.appendChild(subTitle('Para / To'));
+    body.appendChild(field('Empresa / Company', inp(d.parties.to.company, v => d.parties.to.company=v)));
+    body.appendChild(field('Departamento / Department', inp(d.parties.to.department, v => d.parties.to.department=v)));
+    body.appendChild(subTitle('Consultor / Contractor'));
+    body.appendChild(field('Nombre consultor', inp(d.parties.contractor, v => d.parties.contractor=v)));
+    body.appendChild(subTitle('De / From'));
+    body.appendChild(field('Nombre / Name', inp(d.parties.from.name, v => d.parties.from.name=v)));
+    body.appendChild(field('Email', inp(d.parties.from.email, v => d.parties.from.email=v)));
+    body.appendChild(subTitle('Cc'));
+    const ccCont = mk('div');
+    body.appendChild(ccCont);
+    buildCcArray(ccCont, d.parties.cc);
+  }));
+
+  // 3. Documentos de Referencia
+  container.appendChild(section('3. Documentos de Referencia', 'sec-refdocs', body => {
+    const cont = mk('div');
+    body.appendChild(cont);
+    buildStringArray(cont, d.reference_documents, true);
+  }));
+
+  // 4. Descripción RFI
+  container.appendChild(section('4. Descripción RFI / Description', 'sec-desc', body => {
+    body.appendChild(field('Resumen / Summary', ta(d.rfi_description.summary, v => d.rfi_description.summary=v, 3)));
+    body.appendChild(subTitle('Ítems de la RFI'));
+    const itemsCont = mk('div');
+    body.appendChild(itemsCont);
+    buildItemEditor(itemsCont, d.rfi_description.items);
+  }));
+
+  // 5. Adjuntos
+  container.appendChild(section('5. Adjuntos / Attachments', 'sec-adjuntos', body => {
+    const cbWrap = mk('div', 'field');
+    const lbl = mk('label'); lbl.textContent='Acompaña documentos / Includes documents';
+    const cbLabel = mk('label');
+    cbLabel.style.cssText='display:flex;align-items:center;gap:6px;font-size:12px;color:#1a1a2e;font-weight:normal;text-transform:none;letter-spacing:0';
+    const cb = mk('input'); cb.type='checkbox'; cb.checked=!!d.attachments.includes_documents; cb.style.width='auto';
+    cb.addEventListener('change', () => { d.attachments.includes_documents=cb.checked; updatePreview(); });
+    cbLabel.append(cb, document.createTextNode('Sí / Yes'));
+    cbWrap.append(lbl, cbLabel);
+    body.appendChild(cbWrap);
+    body.appendChild(subTitle('Documentos adjuntos'));
+    if (!d.attachments.documents) d.attachments.documents=[];
+    const docsCont = mk('div');
+    body.appendChild(docsCont);
+    buildDocsArray(docsCont, d.attachments.documents);
+  }));
+
+  // 6. Fechas
+  container.appendChild(section('6. Fechas / Dates', 'sec-fechas', body => {
+    body.appendChild(field('Fecha Emisión / Origin Date', inp(d.dates.origin_date, v => d.dates.origin_date=v, 'date')));
+    body.appendChild(field('Fecha Respuesta / Answer Date', inp(d.dates.answer_date, v => d.dates.answer_date=v, 'date')));
+    body.appendChild(field('Fecha Devolución / Return Date', inp(d.dates.return_date, v => d.dates.return_date=v, 'date')));
+  }));
+
+  // 7. Firmas
+  container.appendChild(section('7. Firmas / Signatures', 'sec-firmas', body => {
+    body.appendChild(subTitle('Originador / Originator'));
+    body.appendChild(field('Nombre / Name', inp(d.signatures.originator.name, v => d.signatures.originator.name=v)));
+    body.appendChild(field('Cargo / Job Title', inp(d.signatures.originator.job_title, v => d.signatures.originator.job_title=v)));
+    body.appendChild(subTitle('Recibido por / Received by'));
+    body.appendChild(field('Nombre / Name', inp(d.signatures.received_by.name, v => d.signatures.received_by.name=v)));
+    body.appendChild(field('Cargo / Job Title', inp(d.signatures.received_by.job_title, v => d.signatures.received_by.job_title=v)));
+    body.appendChild(field('Fecha / Date', inp(d.signatures.received_by.date, v => d.signatures.received_by.date=v, 'date')));
+    body.appendChild(subTitle('Respondido por / Answer by'));
+    body.appendChild(field('Nombre / Name', inp(d.signatures.answer_by.name, v => d.signatures.answer_by.name=v)));
+    body.appendChild(field('Cargo / Job Title', inp(d.signatures.answer_by.job_title, v => d.signatures.answer_by.job_title=v)));
+  }));
+
+  // 8. Respuesta
+  container.appendChild(section('8. Respuesta / Answer', 'sec-respuesta', body => {
+    body.appendChild(field('Texto de respuesta / Answer text', ta(d.answer.text, v => d.answer.text=v, 5)));
+  }));
+
+  // 9. Metadatos
+  container.appendChild(section('9. Metadatos / Metadata', 'sec-meta', body => {
+    body.appendChild(field('Fecha Revisión / Revision Date', inp(d.metadata.revision_date, v => d.metadata.revision_date=v)));
+    body.appendChild(field('Área / Area', inp(d.metadata.area, v => d.metadata.area=v)));
+    body.appendChild(field('Etiqueta / File Label', inp(d.metadata.file_label, v => d.metadata.file_label=v)));
+    body.appendChild(field('Página / Page (ej: 1 of 1)', inp(d.metadata.page, v => d.metadata.page=v)));
+  }));
+}
+
+// ── Export ────────────────────────────────────────────────────────────────────
+function exportPDF() {
+  const p = rfiData.project;
+  const filename = p.project_no + '-RFI-' + p.rfi_no;
+
+  // Generar HTML base y agregar @page + auto-print
+  let html = generateRFIHtml(rfiData);
+
+  // Inyectar @page para tamaño oficio y márgenes correctos
+  html = html.replace(
+    '@media print{',
+    '@page{size:legal portrait;margin:12mm 8mm;}@media print{'
+  );
+
+  // Inyectar script de auto-print y title para el nombre del archivo PDF
+  html = html.replace(
+    '</body>',
+    '<script>document.title=' + JSON.stringify(filename) + ';window.onload=function(){setTimeout(window.print,400);}<\/script></body>'
+  );
+
+  const win = window.open('', '_blank');
+  if (!win) {
+    alert('Activa las ventanas emergentes (pop-ups) en tu navegador para exportar PDF.');
+    return;
+  }
+  win.document.write(html);
+  win.document.close();
+}
+
+function exportHTML() {
+  const html = generateRFIHtml(rfiData);
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.download = rfiData.project.project_no + '-RFI-' + rfiData.project.rfi_no + '.html';
+  a.href = url; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportJSON() {
+  const json = JSON.stringify(rfiData, null, 2);
+  const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.download = rfiData.project.project_no + '-RFI-' + rfiData.project.rfi_no + '.json';
+  a.href = url; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function resetData() {
+  if (!confirm('¿Reiniciar todos los datos al estado inicial?')) return;
+  rfiData = JSON.parse(JSON.stringify(initialData));
+  buildForm();
+  updatePreview();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.getElementById('header-logo').src = LOGO_B64;
+document.getElementById('login-logo').src = LOGO_B64;
+</script>
+</body>
+</html>
