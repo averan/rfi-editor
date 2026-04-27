@@ -95,11 +95,13 @@ body { font-family: Arial, Helvetica, sans-serif; font-size: 13px; background: v
 
 /* ── Login ───────────────────────────────────────────────────────────────── */
 .login-screen { position: fixed; inset: 0; background: linear-gradient(150deg, #2A0F50 0%, #5B2E8F 55%, #8B55CC 100%); display: flex; align-items: center; justify-content: center; z-index: 9999; }
-.login-card { background: white; border-radius: 16px; padding: 44px 40px 36px; width: 360px; box-shadow: 0 28px 72px rgba(0,0,0,0.5); text-align: center; }
-.login-logo { height: 58px; margin-bottom: 26px; }
-.login-title { font-size: 21px; font-weight: bold; color: var(--primary); margin-bottom: 3px; letter-spacing: 0.2px; }
-.login-tagline { font-size: 10px; color: #aaa; margin-bottom: 0; letter-spacing: 2px; text-transform: uppercase; }
-.login-divider { border: none; border-top: 1px solid #ede8f5; margin: 22px 0 20px; }
+.login-card { background: white; border-radius: 16px; width: 360px; box-shadow: 0 28px 72px rgba(0,0,0,0.5); overflow: hidden; }
+.login-card-header { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%); padding: 30px 40px 26px; text-align: center; }
+.login-logo { height: 46px; filter: brightness(0) invert(1); display: block; margin: 0 auto; }
+.login-card-body { padding: 28px 36px 32px; text-align: center; }
+.login-title { font-size: 18px; font-weight: bold; color: var(--primary); margin-bottom: 3px; letter-spacing: 0.2px; }
+.login-tagline { font-size: 10px; color: #bbb; margin-bottom: 0; letter-spacing: 2px; text-transform: uppercase; }
+.login-divider { border: none; border-top: 1px solid #ede8f5; margin: 18px 0 16px; }
 .login-field { margin-bottom: 14px; text-align: left; }
 .login-field label { display: block; font-size: 10px; font-weight: bold; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
 .login-field input { width: 100%; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 7px; font-size: 13px; font-family: Arial; box-sizing: border-box; transition: border-color 0.15s, box-shadow 0.15s; }
@@ -125,23 +127,27 @@ body { font-family: Arial, Helvetica, sans-serif; font-size: 13px; background: v
 <!-- ── Pantalla de ingreso ─────────────────────────────────────────────── -->
 <div id="login-screen" class="login-screen">
   <div class="login-card">
-    <img id="login-logo" src="img/LOGO_ECORP.png" class="login-logo" alt="ESPACIOCORP">
-    <div class="login-title">RFI Editor</div>
-    <div class="login-tagline">Hacemos que suceda</div>
-    <hr class="login-divider">
-    <form id="login-form" onsubmit="return doLogin(event)">
-      <div class="login-field">
-        <label>Usuario / User</label>
-        <input type="text" id="login-user" placeholder="Ingresa tu usuario" autocomplete="username" autofocus>
-      </div>
-      <div class="login-field">
-        <label>Contraseña / Password</label>
-        <input type="password" id="login-pass" placeholder="Ingresa tu contraseña" autocomplete="current-password">
-      </div>
-      <div id="login-error" class="login-error"></div>
-      <button type="submit" class="login-btn">Ingresar</button>
-    </form>
-    <div class="login-footer">ESPACIOCORP &nbsp;·&nbsp; Administración de Contrato</div>
+    <div class="login-card-header">
+      <img id="login-logo" src="img/LOGO_ECORP.png" class="login-logo" alt="ESPACIOCORP">
+    </div>
+    <div class="login-card-body">
+      <div class="login-title">RFI Editor</div>
+      <div class="login-tagline">Hacemos que suceda</div>
+      <hr class="login-divider">
+      <form id="login-form" onsubmit="return doLogin(event)">
+        <div class="login-field">
+          <label>Usuario / User</label>
+          <input type="text" id="login-user" placeholder="Ingresa tu usuario" autocomplete="username" autofocus>
+        </div>
+        <div class="login-field">
+          <label>Contraseña / Password</label>
+          <input type="password" id="login-pass" placeholder="Ingresa tu contraseña" autocomplete="current-password">
+        </div>
+        <div id="login-error" class="login-error"></div>
+        <button type="submit" class="login-btn">Ingresar</button>
+      </form>
+      <div class="login-footer">ESPACIOCORP &nbsp;·&nbsp; Administración de Contrato</div>
+    </div>
   </div>
 </div>
 
