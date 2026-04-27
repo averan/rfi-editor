@@ -176,6 +176,8 @@ body { font-family: Arial, Helvetica, sans-serif; font-size: 13px; background: v
       <button class="btn-primary" onclick="exportHTML()">&#8595; Exportar HTML</button>
       <button class="btn-primary" onclick="exportPDF()" style="background:#8B1A1A">&#8595; Exportar PDF</button>
       <button class="btn-secondary" onclick="exportJSON()">&#8595; Exportar JSON</button>
+      <button class="btn-secondary" onclick="document.getElementById('load-json-input').click()">&#8593; Cargar JSON</button>
+      <input type="file" id="load-json-input" accept=".json" style="display:none" onchange="loadJSON(this)">
       <button class="btn-secondary" onclick="resetData()" style="margin-left:auto">&#8635; Reiniciar</button>
     </div>
   </div>
@@ -991,6 +993,24 @@ function resetData() {
   rfiData = JSON.parse(JSON.stringify(initialData));
   buildForm();
   updatePreview();
+}
+
+function loadJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      rfiData = parsed;
+      buildForm();
+      updatePreview();
+    } catch (err) {
+      alert('Error al leer el archivo JSON: ' + err.message);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
